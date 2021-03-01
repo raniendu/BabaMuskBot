@@ -126,7 +126,7 @@ def webhook(event, context):
             except:
                 text = '/describe'
 
-        if text.strip() == '/hello' or text.strip() == '/hello@BabaMuskBot':
+        if text.strip() == '/hello' or text.strip() == '/hello@BabaMuskBot' or text.strip() == '/start' or text.strip() == '/start@BabaMuskBot':
             response_text = """Hello {0}, \n I am an BabaMusk bot, built with Python and the AWS Serverless Application Model (SAM) Framework.""".format(sender)
 
         elif text.strip() == '/ytd' or text.strip() == '/ytd@BabaMuskBot':

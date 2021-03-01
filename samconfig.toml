@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "BabaMuskBot"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-13hlllpy2xfem"
+s3_prefix = "BabaMuskBot"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"

@@ -1,0 +1,109 @@
+{
+  "resource": "/webhook",
+  "path": "/webhook/",
+  "httpMethod": "POST",
+  "headers": {
+    "Accept-Encoding": "gzip, deflate",
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "AG",
+    "Content-Type": "application/json",
+    "Host": "9rr4ke4ze9.execute-api.us-east-1.amazonaws.com",
+    "User-Agent": "Amazon CloudFront",
+    "Via": "1.1 7fcb41b117930690c299be9cec4a977a.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "C_jY_b0y--SHgmcHckAcT66cw9ndi2SthkFjjojkz_BcUxhvrP7W0w==",
+    "X-Amzn-Trace-Id": "Root=1-603c617d-7615e809694cac1d7636694f",
+    "X-Forwarded-For": "91.108.6.99, 70.132.34.137",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+    "Accept-Encoding": [
+      "gzip, deflate"
+    ],
+    "CloudFront-Forwarded-Proto": [
+      "https"
+    ],
+    "CloudFront-Is-Desktop-Viewer": [
+      "true"
+    ],
+    "CloudFront-Is-Mobile-Viewer": [
+      "false"
+    ],
+    "CloudFront-Is-SmartTV-Viewer": [
+      "false"
+    ],
+    "CloudFront-Is-Tablet-Viewer": [
+      "false"
+    ],
+    "CloudFront-Viewer-Country": [
+      "AG"
+    ],
+    "Content-Type": [
+      "application/json"
+    ],
+    "Host": [
+      "9rr4ke4ze9.execute-api.us-east-1.amazonaws.com"
+    ],
+    "User-Agent": [
+      "Amazon CloudFront"
+    ],
+    "Via": [
+      "1.1 7fcb41b117930690c299be9cec4a977a.cloudfront.net (CloudFront)"
+    ],
+    "X-Amz-Cf-Id": [
+      "C_jY_b0y--SHgmcHckAcT66cw9ndi2SthkFjjojkz_BcUxhvrP7W0w=="
+    ],
+    "X-Amzn-Trace-Id": [
+      "Root=1-603c617d-7615e809694cac1d7636694f"
+    ],
+    "X-Forwarded-For": [
+      "91.108.6.99, 70.132.34.137"
+    ],
+    "X-Forwarded-Port": [
+      "443"
+    ],
+    "X-Forwarded-Proto": [
+      "https"
+    ]
+  },
+  "queryStringParameters": null,
+  "multiValueQueryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "resourceId": "ifa8bf",
+    "resourcePath": "/webhook",
+    "httpMethod": "POST",
+    "extendedRequestId": "bfQrnEIqoAMFWOw=",
+    "requestTime": "01/Mar/2021:03:37:33 +0000",
+    "path": "/Prod/webhook/",
+    "accountId": "320210380061",
+    "protocol": "HTTP/1.1",
+    "stage": "Prod",
+    "domainPrefix": "9rr4ke4ze9",
+    "requestTimeEpoch": 1614569853464,
+    "requestId": "f62914a0-ccd9-499c-8f7f-fc7cf2fe6ccb",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "sourceIp": "91.108.6.99",
+      "principalOrgId": null,
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Amazon CloudFront",
+      "user": null
+    },
+    "domainName": "9rr4ke4ze9.execute-api.us-east-1.amazonaws.com",
+    "apiId": "9rr4ke4ze9"
+  },
+  "body": "{\"update_id\":756337319,\"message\":{\"message_id\":389,\"from\":{\"id\":920165401,\"is_bot\":false,\"first_name\":\"Raniendu\",\"last_name\":\"Singh\",\"language_code\":\"en\"},\"chat\":{\"id\":920165401,\"first_name\":\"Raniendu\",\"last_name\":\"Singh\",\"type\":\"private\"},\"date\":1614569849,\"text\":\"/ytd amzn\",\"entities\":[{\"offset\":0,\"length\":4,\"type\":\"bot_command\"}]}}",
+  "isBase64Encoded": "false"
+}

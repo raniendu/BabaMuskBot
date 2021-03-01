@@ -102,10 +102,10 @@ def webhook(event, context):
     bot = configure_telegram()
     logger.info('Event: {}'.format(event))
 
-    bot.setMyCommands(commands=[BotCommand(command='start', description='''Start interaction'''),
+    bot.setMyCommands(commands=[BotCommand(command='hello', description='''Start interaction'''),
                                 BotCommand(command='ytd',
                                            description='''Calculates stock's performance year-to-date'''),
-                                BotCommand(command='help', description='''Get Help''')
+                                BotCommand(command='describe', description='''Get Help''')
                                 ])
 
     if event.get('httpMethod') == 'POST' and event.get('body'):
@@ -117,20 +117,19 @@ def webhook(event, context):
             try:
                 text = update.message.text
             except:
-                text = '/help'
+                text = '/describe'
         except AttributeError:
             chat_id = update.edited_message.chat_id
             sender = update.edited_message.from_user.first_name
             try:
                 text = update.edited_message.text
             except:
-                text = '/help'
+                text = '/describe'
 
-        if text.strip() == '/start':
-            response_text = """Hello, {0}! I am an BabaMusk bot, built with Python and the AWS Serverless Application 
-            Model (SAM) Framework.""".format(sender)
+        if text.strip() == '/hello' or text.strip() == '/hello@BabaMuskBot':
+            response_text = """Hello {0}, \n I am an BabaMusk bot, built with Python and the AWS Serverless Application Model (SAM) Framework.""".format(sender)
 
-        elif text.strip() == '/ytd':
+        elif text.strip() == '/ytd' or text.strip() == '/ytd@BabaMuskBot':
             response_text = """Please provide a ticker symbol e.g. /ytd AMZN""".format(sender)
 
         elif text.startswith('/ytd') and len(text.split(' ')) > 1:
@@ -139,11 +138,8 @@ def webhook(event, context):
             for tick in tick_list:
                 response_text = response_text + ytd(tick)
 
-        elif text.strip() == '/help':
-            response_text = '''You can run the following commands \n
-            /start : Start talking to this bot \n
-            /ytd : Calculates stock's performance year-to-date \n
-            /help : Displays this message '''
+        elif text.strip() == '/describe' or text.strip() == '/describe@BabaMuskBot':
+            response_text = '''You can run the following commands \n /hello : Start talking to this bot \n /ytd : Calculates stock's performance year-to-date \n /describe : Displays this message '''
 
         else:
             response_text = text

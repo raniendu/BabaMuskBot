@@ -122,12 +122,12 @@ def webhook(event, context):
     bot = configure_telegram()
     logger.info('Event: {}'.format(event))
 
-    bot.setMyCommands(commands=[BotCommand(command='start', description='''Start interaction'''),
+    bot.setMyCommands(commands=[BotCommand(command='hello', description='''Start interaction'''),
                                 BotCommand(command='ytd',
                                            description='''Calculates stock's performance year-to-date'''),
                                 BotCommand(command='describe',
                                            description='''Provides a summary about the business'''),
-                                BotCommand(command='help', description='''Get Help''')
+                                BotCommand(command='guide', description='''Get Help''')
                                 ])
 
     if event.get('httpMethod') == 'POST' and event.get('body'):
@@ -142,7 +142,7 @@ def webhook(event, context):
             logging.error('No Message received frmm chat.')
 
         try:
-            if text.strip() == '/start' or text.strip() == '/start@BabaMuskBot':
+            if text.strip() == '/hello' or text.strip() == '/hello@BabaMuskBot' or text.strip() == '/start' or text.strip() == '/start@BabaMuskBot':
                 response_text = """Hello {0}, \nI am an BabaMusk bot, built with Python and the AWS Serverless Application Model (SAM) Framework.""".format(
                     sender)
 
@@ -164,7 +164,7 @@ def webhook(event, context):
                 for tick in tick_list:
                     response_text = response_text + describe(tick)
 
-            elif text.strip() == '/help' or text.strip() == '/help@BabaMuskBot':
+            elif text.strip() == '/guide' or text.strip() == '/guide@BabaMuskBot':
                 response_text = '''You can run the following commands \n/start : Start talking to this bot \n/ytd : Calculates stock's performance year-to-date \n/describe : Provides a summary about the business \n/help : Displays this message '''
 
             else:

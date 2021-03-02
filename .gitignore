@@ -3,6 +3,7 @@
 
 # Jetbrains
 .idea
+.idea/
 
 ### Linux ###
 *~

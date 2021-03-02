@@ -158,7 +158,7 @@ def webhook(event, context):
             elif text.strip() == '/describe' or text.strip() == '/describe@BabaMuskBot':
                 response_text = """Please provide a ticker symbol e.g. /describe AMZN""".format(sender)
 
-            elif (text.startswith('/describe') or text.startswith() == '/describe@BabaMuskBot') and len(text.split(' ')) > 1:
+            elif text.startswith('/describe') and len(text.split(' ')) > 1:
                 response_text = ''
                 tick_list = list(filter(lambda x: x != '/describe', text.split(' ')))
                 for tick in tick_list:

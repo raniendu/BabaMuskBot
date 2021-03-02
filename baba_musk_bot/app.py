@@ -1,4 +1,5 @@
 import json
+import emoji
 import telegram
 import os
 import logging
@@ -39,6 +40,7 @@ def configure_telegram():
 
     return telegram.Bot(TELEGRAM_TOKEN)
 
+
 def caps(update, context):
     text_caps = ' '.join(context.args).upper()
     context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
@@ -59,6 +61,7 @@ def ticker_check(symbol, tick):
         return {'ticker': ticker, 'valid': False}
     return {'ticker': ticker, 'valid': True}
 
+
 def ytd(symbol):
     ticker = parse_ticker_symbol(symbol)
     tick = yf.Ticker(ticker)
@@ -68,8 +71,25 @@ def ytd(symbol):
         first_day_open = tick.history(period="ytd")['Open'].values[0]
         last_day_close = tick.history(period="ytd")['Close'].values[len(tick.history(period="ytd").index) - 1]
         percent_change = ((last_day_close / first_day_open) - 1) * 100
-        move = 'up' if percent_change > 0 else 'down'
-        return '\n${0} is {2} {1} % this year.\n'.format(ticker, format(percent_change, '.2f'), move)
+        move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
+        return emoji.emojize('\n${0} is {2} {1} % this year.\n'.format(ticker, format(percent_change, '.2f'), move), use_aliases=True)
+    else:
+        logging.warning('Ticker {} does not exist'.format(ticker))
+        return '\n{} not found.\n'.format(ticker)
+
+
+def describe(symbol):
+    ticker = parse_ticker_symbol(symbol)
+    tick = yf.Ticker(ticker)
+    if ticker_check(ticker, tick)['valid']:
+        try:
+            description = tick.info['longBusinessSummary']
+        except:
+            description = False
+        if not description:
+            return 'No description found'
+        else:
+            return '\n{}\n'.format(description)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
         return '\n{} not found.\n'.format(ticker)
@@ -102,47 +122,57 @@ def webhook(event, context):
     bot = configure_telegram()
     logger.info('Event: {}'.format(event))
 
-    bot.setMyCommands(commands=[BotCommand(command='hello', description='''Start interaction'''),
+    bot.setMyCommands(commands=[BotCommand(command='start', description='''Start interaction'''),
                                 BotCommand(command='ytd',
                                            description='''Calculates stock's performance year-to-date'''),
-                                BotCommand(command='describe', description='''Get Help''')
+                                BotCommand(command='describe',
+                                           description='''Provides a summary about the business'''),
+                                BotCommand(command='help', description='''Get Help''')
                                 ])
 
     if event.get('httpMethod') == 'POST' and event.get('body'):
         logger.info('Message received')
         update = telegram.Update.de_json(json.loads(event.get('body')), bot)
+
         try:
             chat_id = update.message.chat.id
             sender = update.message.from_user.first_name
-            try:
-                text = update.message.text
-            except:
-                text = '/describe'
+            text = update.message.text
         except AttributeError:
-            chat_id = update.edited_message.chat_id
-            sender = update.edited_message.from_user.first_name
-            try:
-                text = update.edited_message.text
-            except:
-                text = '/describe'
+            logging.error('No Message received frmm chat.')
 
-        if text.strip() == '/hello' or text.strip() == '/hello@BabaMuskBot' or text.strip() == '/start' or text.strip() == '/start@BabaMuskBot':
-            response_text = """Hello {0}, \n I am an BabaMusk bot, built with Python and the AWS Serverless Application Model (SAM) Framework.""".format(sender)
+        try:
+            if text.strip() == '/start' or text.strip() == '/start@BabaMuskBot':
+                response_text = """Hello {0}, \nI am an BabaMusk bot, built with Python and the AWS Serverless Application Model (SAM) Framework.""".format(
+                    sender)
 
-        elif text.strip() == '/ytd' or text.strip() == '/ytd@BabaMuskBot':
-            response_text = """Please provide a ticker symbol e.g. /ytd AMZN""".format(sender)
+            elif text.strip() == '/ytd' or text.strip() == '/ytd@BabaMuskBot':
+                response_text = """Please provide a ticker symbol e.g. /ytd AMZN""".format(sender)
 
-        elif text.startswith('/ytd') and len(text.split(' ')) > 1:
-            response_text = ''
-            tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
-            for tick in tick_list:
-                response_text = response_text + ytd(tick)
+            elif text.startswith('/ytd') and len(text.split(' ')) > 1:
+                response_text = ''
+                tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
+                for tick in tick_list:
+                    response_text = response_text + ytd(tick)
 
-        elif text.strip() == '/describe' or text.strip() == '/describe@BabaMuskBot':
-            response_text = '''You can run the following commands \n /hello : Start talking to this bot \n /ytd : Calculates stock's performance year-to-date \n /describe : Displays this message '''
+            elif text.strip() == '/describe' or text.strip() == '/describe@BabaMuskBot':
+                response_text = """Please provide a ticker symbol e.g. /describe AMZN""".format(sender)
 
-        else:
-            response_text = text
+            elif (text.startswith('/describe') or text.startswith() == '/describe@BabaMuskBot') and len(text.split(' ')) > 1:
+                response_text = ''
+                tick_list = list(filter(lambda x: x != '/describe', text.split(' ')))
+                for tick in tick_list:
+                    response_text = response_text + describe(tick)
+
+            elif text.strip() == '/help' or text.strip() == '/help@BabaMuskBot':
+                response_text = '''You can run the following commands \n/start : Start talking to this bot \n/ytd : Calculates stock's performance year-to-date \n/describe : Provides a summary about the business \n/help : Displays this message '''
+
+            else:
+                response_text = text
+
+        except AttributeError:
+            logging.warning('No Text received')
+            return OK_RESPONSE
 
         if response_text == text:
             pass

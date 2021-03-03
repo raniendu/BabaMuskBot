@@ -1,4 +1,5 @@
 import json
+import requests
 import emoji
 import telegram
 import os
@@ -72,7 +73,9 @@ def ytd(symbol):
         last_day_close = tick.history(period="ytd")['Close'].values[len(tick.history(period="ytd").index) - 1]
         percent_change = ((last_day_close / first_day_open) - 1) * 100
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
-        return emoji.emojize('\n${0} is {2} {1} % this year.\n'.format(ticker, format(percent_change, '.2f'), move), use_aliases=True)
+        return emoji.emojize(
+            '\n${0} is {2} {1} % this year.\n'.format(ticker.upper(), format(percent_change, '.2f'), move),
+            use_aliases=True)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
         return '\n{} not found.\n'.format(ticker)
@@ -89,10 +92,16 @@ def describe(symbol):
         if not description:
             return 'No description found'
         else:
-            return '\n{}\n'.format(description)
+            return '\n{0}\n{1}\n'.format(ticker.upper(), description)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
         return '\n{} not found.\n'.format(ticker)
+
+
+def coin():
+    response = requests.get('''https://api.coinbase.com/v2/prices/BTC-USD/spot''')
+    data = response.json()
+    return '''1 {0} = {2} {1}'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'])
 
 
 def set_webhook(event, context):
@@ -125,6 +134,8 @@ def webhook(event, context):
     bot.setMyCommands(commands=[BotCommand(command='hello', description='''Start interaction'''),
                                 BotCommand(command='ytd',
                                            description='''Calculates stock's performance year-to-date'''),
+                                BotCommand(command='coin',
+                                           description='''Get latest BTC price in USD'''),
                                 BotCommand(command='describe',
                                            description='''Provides a summary about the business'''),
                                 BotCommand(command='guide', description='''Get Help''')
@@ -149,6 +160,9 @@ def webhook(event, context):
             elif text.strip() == '/ytd' or text.strip() == '/ytd@BabaMuskBot':
                 response_text = """Please provide a ticker symbol e.g. /ytd AMZN""".format(sender)
 
+            elif text.strip() == '/coin' or text.strip() == '/coin@BabaMuskBot':
+                response_text = coin()
+
             elif text.startswith('/ytd') and len(text.split(' ')) > 1:
                 response_text = ''
                 tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
@@ -165,12 +179,12 @@ def webhook(event, context):
                     response_text = response_text + describe(tick)
 
             elif text.strip() == '/guide' or text.strip() == '/guide@BabaMuskBot':
-                response_text = '''You can run the following commands \n/start : Start talking to this bot \n/ytd : Calculates stock's performance year-to-date \n/describe : Provides a summary about the business \n/help : Displays this message '''
+                response_text = '''You can run the following commands \n/start : Start talking to this bot \n/ytd : Calculates stock's performance year-to-date \n/coin : Get latest BTC price in USD\n/describe : Provides a summary about the business \n/help : Displays this message '''
 
             else:
                 response_text = text
 
-        except AttributeError:
+        except (AttributeError, UnboundLocalError):
             logging.warning('No Text received')
             return OK_RESPONSE
 

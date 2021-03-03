@@ -66,6 +66,7 @@ def ticker_check(symbol, tick):
 def ytd(symbol):
     ticker = parse_ticker_symbol(symbol)
     tick = yf.Ticker(ticker)
+    tick_short_name = tick.info['shortName']
     if ticker_check(ticker, tick)['valid']:
         first_trading_day_timestamp = tick.history(period="ytd").first_valid_index()
         last_trading_day_timestamp = tick.history(period="ytd").last_valid_index()
@@ -74,7 +75,7 @@ def ytd(symbol):
         percent_change = ((last_day_close / first_day_open) - 1) * 100
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
         return emoji.emojize(
-            '\n${0} is {2} {1} % this year.\n'.format(ticker.upper(), format(percent_change, '.2f'), move),
+            '\n${3} \([{0}](https://robinhood\.com/stocks/{0})\) is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f').replace('.','\.').replace('-','\-'), move, tick_short_name.replace('.','\.')),
             use_aliases=True)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
@@ -86,7 +87,7 @@ def describe(symbol):
     tick = yf.Ticker(ticker)
     if ticker_check(ticker, tick)['valid']:
         try:
-            description = tick.info['longBusinessSummary']
+            description = tick.info['longBusinessSummary'].replace('.','\.').replace('-','\-').replace('_','\_').replace('*','\*').replace('+','\+').replace('-','\-').replace('=','\=').replace('!','\!').replace('#','\#').replace('|','\|').replace('*','\*').replace('>','\>').replace('(','\(').replace(')','\)')
         except:
             description = False
         if not description:
@@ -95,13 +96,13 @@ def describe(symbol):
             return '\n{0}\n{1}\n'.format(ticker.upper(), description)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
-        return '\n{} not found.\n'.format(ticker)
+        return '\n{} not found\.\n'.format(ticker)
 
 
 def coin():
     response = requests.get('''https://api.coinbase.com/v2/prices/BTC-USD/spot''')
     data = response.json()
-    return '''1 {0} = {2} {1}'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'])
+    return '''1 {0} \= {2} {1}'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'].replace('.','\.'))
 
 
 def set_webhook(event, context):
@@ -145,6 +146,8 @@ def webhook(event, context):
         logger.info('Message received')
         update = telegram.Update.de_json(json.loads(event.get('body')), bot)
 
+        is_describe = False
+
         try:
             chat_id = update.message.chat.id
             sender = update.message.from_user.first_name
@@ -154,11 +157,11 @@ def webhook(event, context):
 
         try:
             if text.strip() == '/hello' or text.strip() == '/hello@BabaMuskBot' or text.strip() == '/start' or text.strip() == '/start@BabaMuskBot':
-                response_text = """Hello {0}, \nI am an BabaMusk bot, built with Python and the AWS Serverless Application Model (SAM) Framework.""".format(
+                response_text = """Hello {0}, \nI am an BabaMusk bot, built with Python and the AWS Serverless Application Model \(SAM\) Framework\.""".format(
                     sender)
 
             elif text.strip() == '/ytd' or text.strip() == '/ytd@BabaMuskBot':
-                response_text = """Please provide a ticker symbol e.g. /ytd AMZN""".format(sender)
+                response_text = """Please provide a ticker symbol e\.g\. /ytd AMZN""".format(sender)
 
             elif text.strip() == '/coin' or text.strip() == '/coin@BabaMuskBot':
                 response_text = coin()
@@ -170,16 +173,18 @@ def webhook(event, context):
                     response_text = response_text + ytd(tick)
 
             elif text.strip() == '/describe' or text.strip() == '/describe@BabaMuskBot':
-                response_text = """Please provide a ticker symbol e.g. /describe AMZN""".format(sender)
+                is_describe = True
+                response_text = """Please provide a ticker symbol e\.g\. /describe AMZN""".format(sender)
 
             elif text.startswith('/describe') and len(text.split(' ')) > 1:
                 response_text = ''
+                is_describe = True
                 tick_list = list(filter(lambda x: x != '/describe', text.split(' ')))
                 for tick in tick_list:
                     response_text = response_text + describe(tick)
 
             elif text.strip() == '/guide' or text.strip() == '/guide@BabaMuskBot':
-                response_text = '''You can run the following commands \n/start : Start talking to this bot \n/ytd : Calculates stock's performance year-to-date \n/coin : Get latest BTC price in USD\n/describe : Provides a summary about the business \n/help : Displays this message '''
+                response_text = '''You can run the following commands \n/hello : Start talking to this bot \n/ytd : Calculates stock's performance year\-to\-date \n/coin : Get latest BTC price in USD\n/describe : Provides a summary about the business \n/guide : Displays this message '''
 
             else:
                 response_text = text
@@ -191,7 +196,10 @@ def webhook(event, context):
         if response_text == text:
             pass
         else:
-            bot.sendMessage(chat_id=chat_id, text=response_text)
+            if is_describe:
+                bot.sendMessage(chat_id=chat_id, text=response_text)
+            else:
+                bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='MarkdownV2', disable_web_page_preview=True)
 
         logger.info('Message sent')
 

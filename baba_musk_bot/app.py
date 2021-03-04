@@ -75,7 +75,7 @@ def ytd(symbol):
         percent_change = ((last_day_close / first_day_open) - 1) * 100
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
         return emoji.emojize(
-            '\n${3} \([{0}](https://robinhood\.com/stocks/{0})\) is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f').replace('.','\.').replace('-','\-'), move, tick_short_name.replace('.','\.')),
+            '\n{3} \([{0}](https://robinhood\.com/stocks/{0})\) is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f').replace('.','\.').replace('-','\-'), move, tick_short_name.replace('.','\.').replace('-','\-')),
             use_aliases=True)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
@@ -87,7 +87,8 @@ def describe(symbol):
     tick = yf.Ticker(ticker)
     if ticker_check(ticker, tick)['valid']:
         try:
-            description = tick.info['longBusinessSummary'].replace('.','\.').replace('-','\-').replace('_','\_').replace('*','\*').replace('+','\+').replace('-','\-').replace('=','\=').replace('!','\!').replace('#','\#').replace('|','\|').replace('*','\*').replace('>','\>').replace('(','\(').replace(')','\)')
+            description = tick.info['longBusinessSummary']
+            #description = tick.info['longBusinessSummary'].replace('.','\.').replace('-','\-').replace('_','\_').replace('*','\*').replace('+','\+').replace('-','\-').replace('=','\=').replace('!','\!').replace('#','\#').replace('|','\|').replace('*','\*').replace('>','\>').replace('(','\(').replace(')','\)')
         except:
             description = False
         if not description:

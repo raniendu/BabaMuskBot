@@ -66,7 +66,11 @@ def ticker_check(symbol, tick):
 def ytd(symbol):
     ticker = parse_ticker_symbol(symbol)
     tick = yf.Ticker(ticker)
-    tick_short_name = tick.info['shortName']
+    try:
+        tick_short_name = tick.info['shortName']
+    except IndexError:
+        tick_short_name = ticker
+
     if ticker_check(ticker, tick)['valid']:
         first_trading_day_timestamp = tick.history(period="ytd").first_valid_index()
         last_trading_day_timestamp = tick.history(period="ytd").last_valid_index()
@@ -75,7 +79,7 @@ def ytd(symbol):
         percent_change = ((last_day_close / first_day_open) - 1) * 100
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
         return emoji.emojize(
-            '\n{3} \([{0}](https://robinhood\.com/stocks/{0})\) is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f').replace('.','\.').replace('-','\-'), move, tick_short_name.replace('.','\.').replace('-','\-')),
+            '\n{3} \([{0}](https://robinhood\.com/stocks/{0})\) is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f').replace('.','\.').replace('-','\-'), move, tick_short_name.replace('.','\.').replace('-','\-').replace('(','\(').replace(')','\)')),
             use_aliases=True)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))

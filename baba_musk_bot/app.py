@@ -46,7 +46,6 @@ def caps(update, context):
     text_caps = ' '.join(context.args).upper()
     context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
 
-
 def parse_ticker_symbol(symbol):
     if symbol[0] == '$':
         symbol = symbol[1:]
@@ -79,7 +78,7 @@ def ytd(symbol):
         percent_change = ((last_day_close / first_day_open) - 1) * 100
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
         return emoji.emojize(
-            '\n{3} \([{0}](https://robinhood\.com/stocks/{0})\) is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f').replace('.','\.').replace('-','\-'), move, tick_short_name.replace('.','\.').replace('-','\-').replace('(','\(').replace(')','\)')),
+            '\n{3} <a href="https://robinhood.com/stocks/{0}">({0})</a> is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f'), move, tick_short_name),
             use_aliases=True)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
@@ -92,7 +91,7 @@ def describe(symbol):
     if ticker_check(ticker, tick)['valid']:
         try:
             description = tick.info['longBusinessSummary']
-            #description = tick.info['longBusinessSummary'].replace('.','\.').replace('-','\-').replace('_','\_').replace('*','\*').replace('+','\+').replace('-','\-').replace('=','\=').replace('!','\!').replace('#','\#').replace('|','\|').replace('*','\*').replace('>','\>').replace('(','\(').replace(')','\)')
+            #description = tick.info['longBusinessSummary']
         except:
             description = False
         if not description:
@@ -107,7 +106,7 @@ def describe(symbol):
 def coin():
     response = requests.get('''https://api.coinbase.com/v2/prices/BTC-USD/spot''')
     data = response.json()
-    return '''1 {0} \= {2} {1}'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'].replace('.','\.'))
+    return '''1 {0} is {2} {1}'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'])
 
 
 def set_webhook(event, context):
@@ -204,7 +203,7 @@ def webhook(event, context):
             if is_describe:
                 bot.sendMessage(chat_id=chat_id, text=response_text)
             else:
-                bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='MarkdownV2', disable_web_page_preview=True)
+                bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='HTML', disable_web_page_preview=True)
 
         logger.info('Message sent')
 

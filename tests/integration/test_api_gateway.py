@@ -42,8 +42,8 @@ class TestApiGateway(TestCase):
         stacks = response["Stacks"]
 
         stack_outputs = stacks[0]["Outputs"]
-        api_outputs = [output for output in stack_outputs if output["OutputKey"] == "HelloWorldApi"]
-        self.assertTrue(api_outputs, f"Cannot find output HelloWorldApi in stack {stack_name}")
+        api_outputs = [output for output in stack_outputs if output["OutputKey"] == "BabaMuskApi"]
+        self.assertTrue(api_outputs, f"Cannot find output BabaMuskApi in stack {stack_name}")
 
         self.api_endpoint = api_outputs[0]["OutputValue"]
 

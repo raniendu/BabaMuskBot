@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from baba_musk_bot import app
+from ...baba_musk_bot import app
 
 
 @pytest.fixture()

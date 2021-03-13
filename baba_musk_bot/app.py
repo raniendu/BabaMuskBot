@@ -42,10 +42,6 @@ def configure_telegram():
     return telegram.Bot(TELEGRAM_TOKEN)
 
 
-def caps(update, context):
-    text_caps = ' '.join(context.args).upper()
-    context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
-
 def parse_ticker_symbol(symbol):
     if symbol[0] == '$':
         symbol = symbol[1:]
@@ -71,10 +67,11 @@ def ytd(symbol):
         tick_short_name = ticker
 
     if ticker_check(ticker, tick)['valid']:
-        first_trading_day_timestamp = tick.history(period="ytd").first_valid_index()
-        last_trading_day_timestamp = tick.history(period="ytd").last_valid_index()
-        first_day_open = tick.history(period="ytd")['Open'].values[0]
-        last_day_close = tick.history(period="ytd")['Close'].values[len(tick.history(period="ytd").index) - 1]
+        data = tick.history(period="ytd")
+        #first_trading_day_timestamp = data.first_valid_index()
+        #last_trading_day_timestamp = data.last_valid_index()
+        first_day_open = data['Open'].values[0]
+        last_day_close = data['Close'].values[len(tick.history(period="ytd").index) - 1]
         percent_change = ((last_day_close / first_day_open) - 1) * 100
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
         return emoji.emojize(
@@ -91,13 +88,12 @@ def describe(symbol):
     if ticker_check(ticker, tick)['valid']:
         try:
             description = tick.info['longBusinessSummary']
-            #description = tick.info['longBusinessSummary']
         except:
             description = False
         if not description:
             return 'No description found'
         else:
-            return '\n{0}\n{1}\n'.format(ticker.upper(), description)
+            return '\n<b>{0}</b>\n{1}\n'.format(ticker.upper(), description)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
         return '\n{} not found\.\n'.format(ticker)
@@ -141,7 +137,7 @@ def webhook(event, context):
                                            description='''Calculates stock's performance year-to-date'''),
                                 BotCommand(command='coin',
                                            description='''Get latest BTC price in USD'''),
-                                BotCommand(command='describe',
+                                BotCommand(command='desc',
                                            description='''Provides a summary about the business'''),
                                 BotCommand(command='guide', description='''Get Help''')
                                 ])
@@ -149,8 +145,6 @@ def webhook(event, context):
     if event.get('httpMethod') == 'POST' and event.get('body'):
         logger.info('Message received')
         update = telegram.Update.de_json(json.loads(event.get('body')), bot)
-
-        is_describe = False
 
         try:
             chat_id = update.message.chat.id
@@ -176,14 +170,12 @@ def webhook(event, context):
                 for tick in tick_list:
                     response_text = response_text + ytd(tick)
 
-            elif text.strip() == '/describe' or text.strip() == '/describe@BabaMuskBot':
-                is_describe = True
-                response_text = """Please provide a ticker symbol e\.g\. /describe AMZN""".format(sender)
+            elif text.strip() == '/desc' or text.strip() == '/desc@BabaMuskBot':
+                response_text = """Please provide a ticker symbol e.g. /describe AMZN""".format(sender)
 
-            elif text.startswith('/describe') and len(text.split(' ')) > 1:
+            elif text.startswith('/desc') and len(text.split(' ')) > 1:
                 response_text = ''
-                is_describe = True
-                tick_list = list(filter(lambda x: x != '/describe', text.split(' ')))
+                tick_list = list(filter(lambda x: x != '/desc', text.split(' ')))
                 for tick in tick_list:
                     response_text = response_text + describe(tick)
 
@@ -200,10 +192,7 @@ def webhook(event, context):
         if response_text == text:
             pass
         else:
-            if is_describe:
-                bot.sendMessage(chat_id=chat_id, text=response_text)
-            else:
-                bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='HTML', disable_web_page_preview=True)
+            bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='HTML', disable_web_page_preview=True)
 
         logger.info('Message sent')
 

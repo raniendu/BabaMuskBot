@@ -196,18 +196,17 @@ def webhook(event, context):
             pass
         else:
             message = bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='HTML', disable_web_page_preview=True)
+            logger.info(f'The message_id is {message.message_id}')
+            logger.info(f'The chat_id is {message.chat.id}')
 
-        logger.info(f'The message_id is {message.message_id}')
-        logger.info(f'The chat_id is {message.chat.id}')
+            ddb = boto3.client('dynamodb')
 
-        ddb = boto3.client('dynamodb')
-
-        response =  ddb.put_item(
-            TableName='BabaMuskSentMessageStore',
-            Item={'chat_message_id': {
-                'S': str(message.chat.id) + '_' + str(message.message_id)
-            }}
-        )
+            response =  ddb.put_item(
+                TableName='BabaMuskSentMessageStore',
+                Item={'chat_message_id': {
+                    'S': str(message.chat.id) + '_' + str(message.message_id)
+                }}
+            )
 
         logger.info(response)
 

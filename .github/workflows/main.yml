@@ -75,6 +75,7 @@ jobs:
         run: |
           sam deploy --template-file .aws-sam/build/template.yaml \
             --stack-name BabaMuskBot \
+            --resolve-s3
             --config-file samconfig.toml \
             --parameter-overrides \
               'TOKEN=${{ secrets.TELEGRAM_TOKEN }}' \

@@ -7,7 +7,6 @@ import logging
 import json
 import yfinance as yf
 from telegram import BotCommand
-from functools import wraps
 
 # Logging is cool!
 logger = logging.getLogger()

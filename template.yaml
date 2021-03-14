@@ -21,6 +21,8 @@ Resources:
       CodeUri: baba_musk_bot/
       Handler: app.webhook
       Runtime: python3.8
+      Policies:
+        DynamoDBCrudPolicy
       Environment:
         Variables:
           TELEGRAM_TOKEN: !Ref TOKEN

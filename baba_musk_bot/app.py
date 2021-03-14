@@ -194,7 +194,9 @@ def webhook(event, context):
         if response_text == text:
             pass
         else:
-            bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='HTML', disable_web_page_preview=True)
+            message = bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='HTML', disable_web_page_preview=True)
+
+        logging.info(message)
 
         logger.info('Message sent')
 

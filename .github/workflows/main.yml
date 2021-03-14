@@ -27,7 +27,7 @@ jobs:
           sudo apt-get install python3.8 jq -y
       - name: Install Pip Dependencies for CI
         run: |
-          pip3 install pytest
+          pip3 install -r baba_musk_bot/requirements.txt
       - name: Configure AWS credentials
         id: creds
         uses: aws-actions/configure-aws-credentials@v1

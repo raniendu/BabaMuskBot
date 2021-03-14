@@ -1,7 +1,4 @@
 import json
-import telegram
-from telegram import BotCommand
-
 import pytest
 
 from ...baba_musk_bot import app

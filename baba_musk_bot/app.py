@@ -7,6 +7,7 @@ import logging
 import json
 import yfinance as yf
 from telegram import BotCommand
+import boto3
 
 # Logging is cool!
 logger = logging.getLogger()
@@ -196,8 +197,19 @@ def webhook(event, context):
         else:
             message = bot.sendMessage(chat_id=chat_id, text=response_text, parse_mode='HTML', disable_web_page_preview=True)
 
-        logging.info(f'The message_id is f{message.message_id}')
-        logging.info(f'The chat_id is f{message.chat.id}')
+        logger.info(f'The message_id is {message.message_id}')
+        logger.info(f'The chat_id is {message.chat.id}')
+
+        ddb = boto3.client('dynamodb')
+
+        response =  ddb.put_item(
+            TableName='BabaMuskSentMessageStore',
+            Item={'chat_message_id': {
+                'S': message.chat.id + '_' + message.message_id
+            }}
+        )
+
+        logger.info(response)
 
         logger.info('Message sent')
 

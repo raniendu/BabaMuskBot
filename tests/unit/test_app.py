@@ -64,6 +64,10 @@ def apigw_event():
     }
 
 
+def test_parse_ticker_symbol():
+    assert app.parse_ticker_symbol('$aapl') == 'aapl'
+    assert app.parse_ticker_symbol('aapl') == 'aapl'
+
 def test_webhook(apigw_event):
 
     ret = app.webhook(apigw_event, "")

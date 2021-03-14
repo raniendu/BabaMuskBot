@@ -1,4 +1,6 @@
 import json
+import telegram
+from telegram import BotCommand
 
 import pytest
 
@@ -10,7 +12,7 @@ def apigw_event():
     """ Generates API GW Event"""
 
     return {
-        "body": '{ "test": "body"}',
+        "body": '{ "test": "body", "update_id": 123, "message": {"message_id": 123, "text": "ok", "date":1614569849}}',
         "resource": "/{proxy+}",
         "requestContext": {
             "resourceId": "123456",
@@ -62,12 +64,13 @@ def apigw_event():
     }
 
 
-def test_lambda_handler(apigw_event, mocker):
+def test_webhook(apigw_event):
 
-    ret = app.lambda_handler(apigw_event, "")
+    ret = app.webhook(apigw_event, "")
     data = json.loads(ret["body"])
 
     assert ret["statusCode"] == 200
-    assert "message" in ret["body"]
-    assert data["message"] == "hello world"
+    assert data == "ok"
+    #assert "message" in ret["body"]
+    #assert data["message"] == "ok"
     # assert "location" in data.dict_keys()

@@ -8,6 +8,9 @@
 # AWS SAM
 .aws-sam
 
+# Pytest
+.pytest_cache
+
 ### Linux ###
 *~
 

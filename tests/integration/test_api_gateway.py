@@ -51,5 +51,10 @@ class TestApiGateway(TestCase):
         """
         Call the API Gateway endpoint and check the response
         """
-        response = requests.post(self.api_endpoint, data='')
-        self.assertEqual(response.json(), 'Oops, something went wrong!')
+        response_post_ok = requests.post(self.api_endpoint, data='{ "test": "body", "update_id": 123, "message": {"message_id": 123, "text": "ok", "date":1614569849}}')
+        response_post_error = requests.post(self.api_endpoint, data='')
+
+        print(response_post_ok.json())
+
+        self.assertEqual(response_post_ok.json(), 'ok')
+        self.assertEqual(response_post_error.json(), 'Oops, something went wrong!')

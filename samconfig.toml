@@ -6,5 +6,5 @@ stack_name = "BabaMuskBot"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-13hlllpy2xfem"
 s3_prefix = "BabaMuskBot"
 region = "us-east-1"
-confirm_changeset = true
+confirm_changeset = false
 capabilities = "CAPABILITY_IAM"

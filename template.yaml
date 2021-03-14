@@ -22,7 +22,7 @@ Resources:
       Handler: app.webhook
       Runtime: python3.8
       Policies:
-        DynamoDBCrudPolicy
+        AmazonDynamoDBFullAccess
       Environment:
         Variables:
           TELEGRAM_TOKEN: !Ref TOKEN

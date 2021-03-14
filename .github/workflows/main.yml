@@ -69,6 +69,7 @@ jobs:
       - name: Run tests
         run: |
           export TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
+          export AWS_SAM_STACK_NAME=BabaMuskBot
           python3 -m pytest --cov=baba_musk_bot tests/
       - name: SAM Deploy
         run: |

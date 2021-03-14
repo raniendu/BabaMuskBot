@@ -68,6 +68,7 @@ jobs:
           sam build
       - name: Run tests
         run: |
+          export TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
           python3 -m pytest --cov=baba_musk_bot tests/
       - name: SAM Deploy
         run: |

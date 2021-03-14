@@ -208,7 +208,7 @@ def webhook(event, context):
                 }}
             )
 
-        logger.info(response)
+            logger.info(response)
 
         logger.info('Message sent')
 

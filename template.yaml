@@ -41,6 +41,18 @@ Resources:
         Name: chat_message_id
         Type: String
 
+  BabaMuskScruber:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: baba_musk_bot/
+      Handler: scrub.run
+      Runtime: python3.8
+      Events:
+        HourlyCleanEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 * * * ? *)
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

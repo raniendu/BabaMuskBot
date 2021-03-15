@@ -199,7 +199,7 @@ def webhook(event, context):
             logger.info(f'The message_id is {message.message_id}')
             logger.info(f'The chat_id is {message.chat.id}')
 
-            ddb = boto3.client('dynamodb')
+            '''ddb = boto3.client('dynamodb')
 
             response =  ddb.put_item(
                 TableName='BabaMuskSentMessageStore',
@@ -208,7 +208,7 @@ def webhook(event, context):
                 }}
             )
 
-            logger.info(response)
+            logger.info(response)'''
 
         logger.info('Message sent')
 

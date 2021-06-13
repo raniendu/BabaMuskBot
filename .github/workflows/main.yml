@@ -65,7 +65,7 @@ jobs:
           echo "TELEGRAM_TOKEN is set."
       - name: SAM Build
         run: |
-          sam build
+          sam build --use-container
       - name: Run tests
         run: |
           export TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}

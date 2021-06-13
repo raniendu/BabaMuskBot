@@ -96,7 +96,7 @@ def describe(symbol):
             return '\n<b>{0}</b>\n{1}\n'.format(ticker.upper(), description)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
-        return '\n{} not found\.\n'.format(ticker)
+        return '\n{} not found.\n'.format(ticker)
 
 
 def coin():
@@ -155,11 +155,11 @@ def webhook(event, context):
 
         try:
             if text.strip() == '/hello' or text.strip() == '/hello@BabaMuskBot' or text.strip() == '/start' or text.strip() == '/start@BabaMuskBot':
-                response_text = """Hello {0}, \nI am an BabaMusk bot, built with Python and the AWS Serverless Application Model \(SAM\) Framework\.""".format(
+                response_text = """Hello {0}, \nI am an BabaMusk bot, built with Python and the AWS Serverless Application Model (SAM) Framework.""".format(
                     sender)
 
             elif text.strip() == '/ytd' or text.strip() == '/ytd@BabaMuskBot':
-                response_text = """Please provide a ticker symbol e\.g\. /ytd AMZN""".format(sender)
+                response_text = """Please provide a ticker symbol e.g. /ytd AMZN""".format(sender)
 
             elif text.strip() == '/coin' or text.strip() == '/coin@BabaMuskBot':
                 response_text = coin()

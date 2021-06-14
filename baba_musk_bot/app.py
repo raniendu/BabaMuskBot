@@ -102,7 +102,7 @@ def describe(symbol):
 def coin():
     result = ''
     for pairing in ['BTC-USD','ETH-USD','UNI-USD']:
-        response = requests.get('''https://api.coinbase.com/v2/prices/BTC-USD/spot''')
+        response = requests.get(f'''https://api.coinbase.com/v2/prices/{pairing}/spot''')
         data = response.json()
         result = result + '''1 {0} is {2} {1}\n'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'])
     return result

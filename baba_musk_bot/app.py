@@ -100,9 +100,12 @@ def describe(symbol):
 
 
 def coin():
-    response = requests.get('''https://api.coinbase.com/v2/prices/BTC-USD/spot''')
-    data = response.json()
-    return '''1 {0} is {2} {1}'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'])
+    result = ''
+    for pairing in ['BTC-USD','ETH-USD','UNI-USD']:
+        response = requests.get('''https://api.coinbase.com/v2/prices/BTC-USD/spot''')
+        data = response.json()
+        result = result + '''1 {0} is {2} {1}\n'''.format(data['data']['base'], data['data']['currency'], data['data']['amount'])
+    return result
 
 
 def set_webhook(event, context):

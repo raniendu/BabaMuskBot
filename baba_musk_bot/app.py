@@ -172,13 +172,13 @@ def webhook(event, context):
                 response_text = coin()
 
             elif text.startswith('/ytd') and len(text.split(' ')) > 1:
-                response_text = ''
-                tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
+                response_text = 'This feature is deprecated. Please use /spy.'
+                '''tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
                 if len(tick_list) <= 5:
                     for tick in tick_list:
                         response_text = response_text + ytd(tick)
                 else:
-                    response_text = '/ytd only supports upto 5 tickers.'
+                    response_text = '/ytd only supports upto 5 tickers.'''
 
             elif text.strip() == '/desc' or text.strip() == '/desc@BabaMuskBot':
                 response_text = """Please provide a ticker symbol e.g. /describe AMZN""".format(sender)

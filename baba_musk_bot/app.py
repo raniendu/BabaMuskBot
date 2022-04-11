@@ -109,8 +109,8 @@ def coin():
     for pairing in ['BTC-USD','ETH-USD','ADA-USD', 'MATIC-USD','SOL-USD','BTC-CAD','ETH-CAD','ADA-CAD', 'MATIC-CAD','SOL-CAD']:
         response = requests.get(f'''https://api.coinbase.com/v2/prices/{pairing}/spot''')
         data = response.json()
-        country = '::Canada::' if data['data']['currency'] == 'CAD' else ':United_States:'
-        result = result + '''1 {0} is ${2} in ${3}\n'''.format(crypto_name[data['data']['base']], data['data']['currency'], data['data']['amount'], country)
+        country = ':Canada:' if data['data']['currency'] == 'CAD' else ':United_States:'
+        result = result + '''1 {0} is ${2} in {3}\n'''.format(crypto_name[data['data']['base']], data['data']['currency'], data['data']['amount'], country)
     return emoji.emojize(result, use_aliases=True)
 
 

@@ -110,7 +110,7 @@ def coin():
         response = requests.get(f'''https://api.coinbase.com/v2/prices/{pairing}/spot''')
         data = response.json()
         country = ':Canada:' if data['data']['currency'] == 'CAD' else ':United_States:'
-        result = result + '''1 {0} is ${2} in {3}\n'''.format(crypto_name[data['data']['base']], data['data']['currency'], data['data']['amount'], country)
+        result = result + '''1 {0} is ${2} in {3}\n'''.format(crypto_name[data['data']['base']], data['data']['currency'], format(data['data']['amount'],'.2f'), country)
     return emoji.emojize(result, use_aliases=True)
 
 
@@ -145,7 +145,7 @@ def webhook(event, context):
                                 BotCommand(command='ytd',
                                            description='''Calculates stock's performance year-to-date'''),
                                 BotCommand(command='coin',
-                                           description='''Get latest BTC price in USD'''),
+                                           description='''Get latest BTC price in USD/CAD'''),
                                 BotCommand(command='desc',
                                            description='''Provides a summary about the business'''),
                                 BotCommand(command='guide', description='''Get Help''')

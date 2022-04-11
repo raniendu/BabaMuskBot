@@ -102,10 +102,11 @@ def describe(symbol):
 def coin():
     result = ''
     crypto_name = {'BTC': 'Bitcoin',
-                   'ETH': 'Etherium',
-                   'UNI': 'Uniswap',
-                   'DOGE': 'Dogecoin'}
-    for pairing in ['BTC-USD','ETH-USD','UNI-USD', 'DOGE-USD']:
+                   'ETH': 'Ethereum',
+                   'ADA': 'Cardano',
+                   'MATIC': 'Polygon',
+                   'SOL': 'Solana'}
+    for pairing in ['BTC-USD','ETH-USD','ADA-USD', 'MATIC-USD','SOL-USD','BTC-CAD','ETH-CAD','ADA-CAD', 'MATIC-CAD','SOL-CAD'].sort():
         response = requests.get(f'''https://api.coinbase.com/v2/prices/{pairing}/spot''')
         data = response.json()
         result = result + '''1 {0} is ${2}\n\n'''.format(crypto_name[data['data']['base']], data['data']['currency'], data['data']['amount'])

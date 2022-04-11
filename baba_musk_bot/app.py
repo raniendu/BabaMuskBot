@@ -110,7 +110,7 @@ def coin():
         response = requests.get(f'''https://api.coinbase.com/v2/prices/{pairing}/spot''')
         data = response.json()
         country = ':Canada:' if data['data']['currency'] == 'CAD' else ':United_States:'
-        result = result + '''1 {0} is ${2} in {3}\n'''.format(crypto_name[data['data']['base']], data['data']['currency'], format(data['data']['amount'],'.2f'), country)
+        result = result + '''1 {0} is ${2} in {3}\n'''.format(crypto_name[data['data']['base']], data['data']['currency'], format(float(data['data']['amount']),'.2f'), country)
     return emoji.emojize(result, use_aliases=True)
 
 

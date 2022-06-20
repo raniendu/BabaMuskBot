@@ -4,16 +4,17 @@ import emoji
 import telegram
 import os
 import logging
-import json
 import yfinance as yf
 from telegram import BotCommand
-import boto3
+from datetime import date, timedelta
 
 # Logging is cool!
 logger = logging.getLogger()
+
 if logger.handlers:
     for handler in logger.handlers:
         logger.removeHandler(handler)
+
 logging.basicConfig(level=logging.INFO)
 
 OK_RESPONSE = {
@@ -25,6 +26,8 @@ ERROR_RESPONSE = {
     'statusCode': 400,
     'body': json.dumps('Oops, something went wrong!')
 }
+
+POLYGON_API_KEY = os.environ.get('POLYGON_API_KEY')
 
 
 def configure_telegram():
@@ -57,25 +60,64 @@ def ticker_check(symbol, tick):
         return {'ticker': ticker, 'valid': False}
     return {'ticker': ticker, 'valid': True}
 
+def implied_market_status(status_date):
+    get_implied_market_status_url = f'https://api.polygon.io/v1/open-close/AAPL/{status_date}?adjusted=true&apiKey={POLYGON_API_KEY}'
+    response = requests.get(get_implied_market_status_url)
+    response_dict = dict(response.json())
+
+    if response_dict['status'] == 'NOT_FOUND':
+        return False
+
+    return True
+
+
+def first_trading_date():
+    today = date.today()
+    start_date = date(today.year, 1, 1)
+    while True:
+        if date.weekday(start_date) in range(0, 5) and implied_market_status(start_date.strftime('%Y-%m-%d')):
+            start_date = start_date
+            break
+        elif date.weekday(start_date) in range(0, 5) and implied_market_status(start_date.strftime('%Y-%m-%d')) is False:
+            start_date = start_date + timedelta(days=1)
+        elif date.weekday(start_date) == 5:
+            start_date = start_date + timedelta(days=2)
+        else:
+            start_date = start_date + timedelta(days=1)
+
+    return start_date
+
+
+def last_trading_date():
+    start_date = date.today()
+    while True:
+        if date.weekday(start_date) in range(0, 5) and implied_market_status(
+                start_date.strftime('%Y-%m-%d')):
+            start_date = start_date
+            break
+        elif date.weekday(start_date) in range(0, 5) and implied_market_status(
+                start_date.strftime('%Y-%m-%d')) is False:
+            start_date = start_date - timedelta(days=1)
+        elif date.weekday(start_date) == 5:
+            start_date = start_date - timedelta(days=1)
+        else:
+            start_date = start_date - timedelta(days=2)
+
+    return start_date
+
 
 def ytd(symbol):
     ticker = parse_ticker_symbol(symbol)
     tick = yf.Ticker(ticker)
-    try:
-        tick_short_name = tick.info['shortName']
-    except IndexError:
-        tick_short_name = ticker
 
     if ticker_check(ticker, tick)['valid']:
-        data = tick.history(period="ytd")
-        #first_trading_day_timestamp = data.first_valid_index()
-        #last_trading_day_timestamp = data.last_valid_index()
-        first_day_open = data['Open'].values[0]
-        last_day_close = data['Close'].values[len(tick.history(period="ytd").index) - 1]
+        first_day_open = dict(requests.get(f'https://api.polygon.io/v1/open-close/AAPL/{first_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())['open']
+        last_day_close = dict(requests.get(f'https://api.polygon.io/v1/open-close/AAPL/{last_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())['close']
         percent_change = ((last_day_close / first_day_open) - 1) * 100
+
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
         return emoji.emojize(
-            '\n{3} <a href="https://robinhood.com/stocks/{0}">({0})</a> is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f'), move, tick_short_name),
+            '\n<a href="https://robinhood.com/stocks/{0}">{0}</a> is {2} {1} % this year\n'.format(ticker.upper(), format(percent_change, '.2f'), move),
             use_aliases=True)
     else:
         logging.warning('Ticker {} does not exist'.format(ticker))
@@ -173,14 +215,13 @@ def webhook(event, context):
             elif text.strip() == '/coin' or text.strip() == '/coin@BabaMuskBot':
                 response_text = coin()
 
-            elif text.startswith('/ytd') and len(text.split(' ')) > 1:
-                response_text = 'This feature is deprecated. Please use /spy.'
-                '''tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
-                if len(tick_list) <= 5:
+            elif text.startswith('/ytd'):
+                tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
+                if len(tick_list) <= 2:
                     for tick in tick_list:
                         response_text = response_text + ytd(tick)
                 else:
-                    response_text = '/ytd only supports upto 5 tickers.'''
+                    response_text = '/ytd only supports upto 2 tickers.'''
 
             elif text.strip() == '/desc' or text.strip() == '/desc@BabaMuskBot':
                 response_text = """Please provide a ticker symbol e.g. /describe AMZN""".format(sender)

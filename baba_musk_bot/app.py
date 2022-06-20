@@ -121,7 +121,7 @@ def ytd(symbol):
         while True:
             if first_day_open is None:
                 get_first_day_data = dict(requests.get(
-                    f'https://api.polygon.io/v1/open-close/AAPL/{first_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())
+                    f'https://api.polygon.io/v1/open-close/{symbol}/{first_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())
                 print(get_first_day_data)
                 if get_first_day_data['status'] == 'OK':
                     first_day_open = get_first_day_data['open']
@@ -131,7 +131,7 @@ def ytd(symbol):
 
             if last_day_close is None:
                 get_last_day_data = dict(requests.get(
-                    f'https://api.polygon.io/v1/open-close/AAPL/{last_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())
+                    f'https://api.polygon.io/v1/open-close/{symbol}/{last_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())
                 print(get_last_day_data)
                 if get_last_day_data['status'] == 'OK':
                     last_day_close = get_last_day_data['close']

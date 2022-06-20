@@ -51,13 +51,15 @@ def parse_ticker_symbol(symbol):
     return symbol
 
 
-def ticker_check(symbol, tick):
+def ticker_check(symbol):
     ticker = parse_ticker_symbol(symbol)
-    try:
-        logging.info(tick.info)
-    except:
-        logging.warning('Ticker {} does not exist'.format(ticker))
+    ticker_url = f'https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey={POLYGON_API_KEY}'
+    response = requests.get(ticker_url)
+    response_dict = dict(response.json())
+
+    if response_dict['status'] == 'NOT_FOUND':
         return {'ticker': ticker, 'valid': False}
+
     return {'ticker': ticker, 'valid': True}
 
 def implied_market_status(status_date):
@@ -110,9 +112,35 @@ def ytd(symbol):
     ticker = parse_ticker_symbol(symbol)
     tick = yf.Ticker(ticker)
 
-    if ticker_check(ticker, tick)['valid']:
-        first_day_open = dict(requests.get(f'https://api.polygon.io/v1/open-close/AAPL/{first_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())['open']
-        last_day_close = dict(requests.get(f'https://api.polygon.io/v1/open-close/AAPL/{last_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())['close']
+    logging.info(f'The first trading day was {first_trading_date()}')
+
+    if ticker_check(ticker)['valid']:
+        first_day_open = None
+        last_day_close = None
+        while True:
+            if first_day_open is None:
+                get_first_day_data = dict(requests.get(
+                    f'https://api.polygon.io/v1/open-close/AAPL/{first_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())
+                print(get_first_day_data)
+                if get_first_day_data['status'] == 'OK':
+                    first_day_open = get_first_day_data['open']
+                    time.sleep(5)
+                else:
+                    time.sleep(61)
+
+            if last_day_close is None:
+                get_last_day_data = dict(requests.get(
+                    f'https://api.polygon.io/v1/open-close/AAPL/{last_trading_date()}?adjusted=true&apiKey={POLYGON_API_KEY}').json())
+                print(get_last_day_data)
+                if get_last_day_data['status'] == 'OK':
+                    last_day_close = get_last_day_data['close']
+                    time.sleep(5)
+                else:
+                    time.sleep(61)
+
+            if first_day_open is not None and last_day_close is not None:
+                break
+
         percent_change = ((last_day_close / first_day_open) - 1) * 100
 
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
@@ -127,9 +155,12 @@ def ytd(symbol):
 def describe(symbol):
     ticker = parse_ticker_symbol(symbol)
     tick = yf.Ticker(ticker)
-    if ticker_check(ticker, tick)['valid']:
+    if ticker_check(ticker)['valid']:
         try:
-            description = tick.info['longBusinessSummary']
+            ticker_url = f'https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey={POLYGON_API_KEY}'
+            response = requests.get(ticker_url)
+            response_dict = dict(response.json())
+            description = response_dict['results']['description']
         except:
             description = False
         if not description:
@@ -216,12 +247,13 @@ def webhook(event, context):
                 response_text = coin()
 
             elif text.startswith('/ytd'):
+                response_text = ''
                 tick_list = list(filter(lambda x: x != '/ytd', text.split(' ')))
-                if len(tick_list) <= 2:
+                if len(tick_list) <= 1:
                     for tick in tick_list:
                         response_text = response_text + ytd(tick)
                 else:
-                    response_text = '/ytd only supports upto 2 tickers.'''
+                    response_text = '/ytd only supports 1 ticker.'''
 
             elif text.strip() == '/desc' or text.strip() == '/desc@BabaMuskBot':
                 response_text = """Please provide a ticker symbol e.g. /describe AMZN""".format(sender)

@@ -81,5 +81,5 @@ jobs:
             --resolve-s3 \
             --config-file samconfig.toml \
             --parameter-overrides \
-              'TOKEN=${{ secrets.TELEGRAM_TOKEN }},POLYGONKEY=${{ secrets.POLYGON_API_KEY }}' \
+              'TOKEN=${{ secrets.TELEGRAM_TOKEN }} POLYGONKEY=${{ secrets.POLYGON_API_KEY }}' \
             --capabilities CAPABILITY_IAM

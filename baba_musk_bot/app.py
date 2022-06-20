@@ -7,6 +7,7 @@ import logging
 import yfinance as yf
 from telegram import BotCommand
 from datetime import date, timedelta
+import time
 
 # Logging is cool!
 logger = logging.getLogger()

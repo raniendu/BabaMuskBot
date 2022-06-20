@@ -13,7 +13,7 @@ Globals:
 Parameters:
   TOKEN: #Telegram Token
     Type: String
-  POLYGON_KEY:
+  POLYGONKEY:
     Type: String
 
 Resources:
@@ -28,7 +28,7 @@ Resources:
       Environment:
         Variables:
           TELEGRAM_TOKEN: !Ref TOKEN
-          POLYGON_API_KEY: !Ref POLYGON_KEY
+          POLYGON_API_KEY: !Ref POLYGONKEY
       Events:
         BabaMusk:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api

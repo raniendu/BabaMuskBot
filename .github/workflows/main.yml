@@ -52,7 +52,7 @@ jobs:
           REPOSITORY=`echo $REPO | tr "/" "-"`
           ENVIRONMENT=$BRANCH-$REPOSITORY-${{ secrets.AWS_REGION }}
           TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
-          POLYGON_API_KEY=${{ secrets.POLYGON_API_KEY }}
+          POLYGONKEY=${{ secrets.POLYGON_API_KEY }}
           # In this step we are setting variables and persistenting them
           # into the environment so that they can be utilized in other steps
           echo "::set-output name=branch::$BRANCH"
@@ -64,7 +64,7 @@ jobs:
           echo "The environment is $ENVIRONMENT"
           echo "The branch is $BRANCH"
           echo "TELEGRAM_TOKEN is set."
-          echo "POLYGON_API_KEY is set."
+          echo "POLYGONKEY is set."
       - name: SAM Build
         run: |
           sam build --use-container

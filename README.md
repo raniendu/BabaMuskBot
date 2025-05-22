@@ -145,7 +145,7 @@ Here are the commands you can use with BabaMuskBot:
 *   `/hello` or `/start`: Greets the user and introduces the bot.
 *   `/ytd <TICKER_SYMBOL>`: Calculates Year-To-Date performance for the given stock ticker. Example: `/ytd AAPL`
 *   `/coin`: Fetches current prices for major cryptocurrencies (BTC, ETH, ADA, MATIC, SOL) in USD and CAD.
-*   `/desc <TICKER_SYMBOL>`: Provides a business summary for the given stock ticker. Example: `/desc TSLA`
+*   `/describe <TICKER_SYMBOL>`: Provides a business summary for the given stock ticker. Example: `/describe TSLA`
 *   `/guide`: Displays this help message with all available commands.
 
 ## Configuration

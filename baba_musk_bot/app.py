@@ -27,6 +27,7 @@ import logging
 from telegram import BotCommand
 from datetime import date, timedelta
 import time
+from typing import Optional
 
 # Logging is cool!
 logger = logging.getLogger()
@@ -209,7 +210,7 @@ def first_trading_date():
     return None # Fallback, should not be reached.
 
 
-def last_trading_date() -> date | None:
+def last_trading_date() -> Optional[date]:
     """
     Finds the most recent trading date.
 
@@ -222,41 +223,21 @@ def last_trading_date() -> date | None:
     """
     current_date = date.today()
     # Safety break: check back up to ~2 weeks. If no trading day found, something is wrong.
-    for _ in range(14):
-        weekday = current_date.weekday()
-        # Check if it's a weekday (Monday=0 to Friday=4)
-        if weekday < 5: # 0-4 are Mon-Fri
-            if implied_market_status(current_date.strftime('%Y-%m-%d')):
-                return current_date # Found a valid trading day
-            else:
-                # It's a weekday, but market is closed (holiday)
-                current_date += timedelta(days=1)
-        elif weekday == 5: # Saturday
-            current_date += timedelta(days=2) # Skip to Monday
-        else: # Sunday (weekday == 6)
-            current_date += timedelta(days=1) # Skip to Monday
-
-    # This part should ideally not be reached if the logic is correct and there's always a trading day.
-    # However, to prevent infinite loops in unexpected scenarios, consider adding a safety break or error.
-    # For now, assuming implied_market_status will eventually return True for some date.
-
-
-def last_trading_date():
-    """
+    for _ in range(14):  # Check up to 14 days back
         weekday = current_date.weekday()
         if weekday < 5:  # Monday to Friday
             if implied_market_status(current_date.strftime('%Y-%m-%d')):
                 return current_date  # Found a valid trading day
             else:
                 # Weekday, but market closed (holiday or API issue)
-                current_date -= timedelta(days=1)
+                current_date -= timedelta(days=1)  # CORRECTED: Decrement
         elif weekday == 5:  # Saturday
-            current_date -= timedelta(days=1)  # Go to Friday
+            current_date -= timedelta(days=1)  # CORRECTED: Go to Friday (decrement)
         else:  # Sunday (weekday == 6)
-            current_date -= timedelta(days=2)  # Go to Friday
-            
-    logging.error("Failed to find the last trading date after extensive iteration.")
-    return None # Fallback, should not be reached if API is stable.
+            current_date -= timedelta(days=2)  # CORRECTED: Go to Friday (decrement)
+
+    logging.error("Failed to find the last trading date after 14 attempts.")
+    return None  # Fallback if no trading day is found within the loop
 
 
 def ytd(symbol: str) -> str:
@@ -302,7 +283,7 @@ def ytd(symbol: str) -> str:
     logging.info(f'First trading day for {symbol}: {_first_trading_date_str}')
     logging.info(f'Last trading day for {symbol}: {_last_trading_date_str}')
 
-    def fetch_with_retry(url: str, symbol_for_log: str, date_for_log: str, key_to_extract: str) -> float | None:
+    def fetch_with_retry(url: str, symbol_for_log: str, date_for_log: str, key_to_extract: str) -> Optional[float]:
         """Fetches data from a URL with retries and extracts a specific key.
 
         Args:

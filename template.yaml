@@ -22,7 +22,7 @@ Resources:
     Properties:
       CodeUri: baba_musk_bot/
       Handler: app.webhook
-      Runtime: python3.8
+      Runtime: python3.9
       Policies:
         AmazonDynamoDBFullAccess
       Environment:

@@ -75,7 +75,7 @@ def test_parse_valid_ticker_no_prefix(mock_env_vars, requests_mock):
     symbol = "AAPL"
     expected_url = f"https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey=test_api_key"
     requests_mock.get(expected_url, json={"status": "OK", "results": {"ticker": symbol, "name": "Apple Inc."}})
-    
+
     assert app.parse_and_validate_ticker_symbol(symbol) == symbol
 
 def test_parse_valid_ticker_with_prefix(mock_env_vars, requests_mock):
@@ -84,7 +84,7 @@ def test_parse_valid_ticker_with_prefix(mock_env_vars, requests_mock):
     processed_symbol = "TSLA"
     expected_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(expected_url, json={"status": "OK", "results": {"ticker": processed_symbol, "name": "Tesla Inc."}})
-    
+
     assert app.parse_and_validate_ticker_symbol(input_symbol) == processed_symbol
 
 def test_parse_invalid_ticker_not_found(mock_env_vars, requests_mock):
@@ -92,7 +92,7 @@ def test_parse_invalid_ticker_not_found(mock_env_vars, requests_mock):
     symbol = "INVALIDTICKER"
     expected_url = f"https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey=test_api_key"
     requests_mock.get(expected_url, json={"status": "NOT_FOUND", "results": None})
-    
+
     with pytest.raises(ValueError, match=f"Ticker symbol '{symbol}' not found or invalid."):
         app.parse_and_validate_ticker_symbol(symbol)
 
@@ -102,7 +102,7 @@ def test_parse_invalid_ticker_no_results(mock_env_vars, requests_mock):
     expected_url = f"https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey=test_api_key"
     # Some APIs might return status OK but no results, or results is None
     requests_mock.get(expected_url, json={"status": "OK", "results": None}) 
-    
+
     with pytest.raises(ValueError, match=f"Ticker symbol '{symbol}' not found or invalid."):
         app.parse_and_validate_ticker_symbol(symbol)
 
@@ -111,7 +111,7 @@ def test_parse_api_request_exception(mock_env_vars, requests_mock):
     symbol = "ANYTICKER"
     expected_url = f"https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey=test_api_key"
     requests_mock.get(expected_url, exc=requests.exceptions.ConnectTimeout)
-    
+
     with pytest.raises(ValueError, match=f"Network error while validating ticker {symbol}."):
         app.parse_and_validate_ticker_symbol(symbol)
 
@@ -120,7 +120,7 @@ def test_parse_api_non_json_response(mock_env_vars, requests_mock):
     symbol = "NONJSON"
     expected_url = f"https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey=test_api_key"
     requests_mock.get(expected_url, text="Service Unavailable", status_code=200) # Status 200 but not JSON
-    
+
     with pytest.raises(ValueError, match=f"Invalid response format while validating ticker {symbol}."):
         app.parse_and_validate_ticker_symbol(symbol)
 
@@ -129,7 +129,7 @@ def test_parse_api_http_error_response(mock_env_vars, requests_mock):
     symbol = "HTTPERROR"
     expected_url = f"https://api.polygon.io/v3/reference/tickers/{symbol}?apiKey=test_api_key"
     requests_mock.get(expected_url, status_code=500, text="Internal Server Error")
-    
+
     # The app code uses response.raise_for_status(), which will raise an HTTPError,
     # which is a subclass of RequestException. The handler then catches RequestException.
     with pytest.raises(ValueError, match=f"Network error while validating ticker {HTTPERROR}."):
@@ -231,7 +231,7 @@ def test_webhook_dispatch_standard_commands(
 
     assert response["statusCode"] == 200
     mock_bot.setMyCommands.assert_called_once() # Usually called once per webhook setup
-    
+
     # Check if the specific underlying function was called
     if mock_function_to_check:
         patched_func = mocker.patch.object(app, mock_function_to_check.split('.')[-1]) # get the actual patched object
@@ -344,7 +344,7 @@ def test_webhook_empty_or_no_text(empty_text, mock_env_vars, mock_bot, mock_upda
     """Tests webhook behavior when message text is empty or None."""
     mocker.patch('baba_musk_bot.app.configure_telegram', return_value=mock_bot)
     mocker.patch('telegram.Update.de_json', return_value=mock_update)
-    
+
     mock_update.message.text = empty_text
     # The event body should reflect that the text is empty or not present
     # to be consistent with how `telegram.Update.de_json` would parse it.
@@ -359,7 +359,7 @@ def test_webhook_empty_or_no_text(empty_text, mock_env_vars, mock_bot, mock_upda
     }
     if empty_text is not None: # if empty_text is "", include it. if None, omit.
         event_body_dict["message"]["text"] = empty_text
-        
+
     event = create_api_gateway_event(empty_text) # message_text in create_api_gateway_event is used for body
     event["body"] = json.dumps(event_body_dict)
 
@@ -378,7 +378,7 @@ def test_webhook_no_message_in_update(mock_env_vars, mock_bot, mock_update, mock
     mocker.patch('telegram.Update.de_json', return_value=mock_update)
 
     mock_update.message = None # Simulate an update without a message (e.g., channel_post_update)
-    
+
     # Event body should reflect an update type that might not have a 'message'
     # For this test, an empty body or a body representing a different update type would be suitable.
     # The key is that Update.de_json returns our mock_update with .message = None.
@@ -419,7 +419,7 @@ def test_ytd_successful_calculation_positive_change(mock_env_vars, mocker, reque
     """Tests a successful YTD calculation with a positive percentage change."""
     symbol = "AAPL"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=symbol)
-    
+
     first_date = date(2023, 1, 3)
     last_date = date(2023, 12, 15)
     mocker.patch('baba_musk_bot.app.first_trading_date', return_value=first_date)
@@ -435,7 +435,7 @@ def test_ytd_successful_calculation_positive_change(mock_env_vars, mocker, reque
     requests_mock.get(url_last_day, json={"status": "OK", "close": 180.0, "from": last_date_str})
 
     result = app.ytd(symbol)
-    
+
     assert "AAPL</a> is :arrow_up_small: 20.00 % this year" in result
     assert "https://robinhood.com/stocks/AAPL" in result
 
@@ -443,7 +443,7 @@ def test_ytd_successful_calculation_negative_change(mock_env_vars, mocker, reque
     """Tests a successful YTD calculation with a negative percentage change."""
     symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=symbol)
-    
+
     first_date = date(2023, 1, 3)
     last_date = date(2023, 12, 15)
     mocker.patch('baba_musk_bot.app.first_trading_date', return_value=first_date)
@@ -459,7 +459,7 @@ def test_ytd_successful_calculation_negative_change(mock_env_vars, mocker, reque
     requests_mock.get(url_last_day, json={"status": "OK", "close": 180.0, "from": last_date_str})
 
     result = app.ytd(symbol)
-    
+
     assert "MSFT</a> is :arrow_down_small: -10.00 % this year" in result
     assert "https://robinhood.com/stocks/MSFT" in result
 
@@ -475,7 +475,7 @@ def test_ytd_parse_and_validate_raises_value_error(mock_env_vars, mocker):
     # The prompt asks to mock app.parse_and_validate_ticker_symbol
     # The ytd function calls it directly.
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', side_effect=ValueError(error_message))
-    
+
     # The ytd function catches ValueError and returns the error message.
     result = app.ytd("INVALID") 
     assert error_message in result # The app.ytd function prepends/appends newlines.
@@ -484,7 +484,7 @@ def test_ytd_api_error_first_day_fetch_fails(mock_env_vars, mocker, requests_moc
     """Tests ytd when fetching the first day's open price fails after retries."""
     symbol = "AAPL"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=symbol)
-    
+
     first_date = date(2023, 1, 3)
     last_date = date(2023, 12, 15)
     mocker.patch('baba_musk_bot.app.first_trading_date', return_value=first_date)
@@ -492,7 +492,7 @@ def test_ytd_api_error_first_day_fetch_fails(mock_env_vars, mocker, requests_moc
 
     first_date_str = first_date.strftime('%Y-%m-%d')
     url_first_day = f"https://api.polygon.io/v1/open-close/{symbol}/{first_date_str}?adjusted=true&apiKey=test_api_key"
-    
+
     # Simulate failure for all retries for the first day
     requests_mock.get(url_first_day, [{"status_code": 500, "text": "Server Error"}] * 3) 
 
@@ -503,7 +503,7 @@ def test_ytd_api_error_last_day_fetch_fails(mock_env_vars, mocker, requests_mock
     """Tests ytd when fetching the last day's close price fails after retries."""
     symbol = "AAPL"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=symbol)
-    
+
     first_date = date(2023, 1, 3)
     last_date = date(2023, 12, 15)
     mocker.patch('baba_musk_bot.app.first_trading_date', return_value=first_date)
@@ -546,7 +546,7 @@ def test_ytd_division_by_zero(mock_env_vars, mocker, requests_mock):
     """Tests ytd when first_day_open is 0, leading to division by zero."""
     symbol = "ZERODAY"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=symbol)
-    
+
     first_date = date(2023, 1, 3)
     last_date = date(2023, 12, 15)
     mocker.patch('baba_musk_bot.app.first_trading_date', return_value=first_date)
@@ -574,16 +574,16 @@ def test_describe_successful_retrieval(mock_env_vars, mocker, requests_mock):
     original_symbol = "$MSFT"
     processed_symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=processed_symbol)
-    
+
     expected_description = "Microsoft is a technology company."
     api_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(api_url, json={
         "status": "OK",
         "results": {"ticker": processed_symbol, "name": "Microsoft Corp.", "description": expected_description}
     })
-    
+
     result = app.describe(original_symbol)
-    
+
     assert f"<b>{processed_symbol.upper()}</b>" in result
     assert expected_description in result
 
@@ -592,7 +592,7 @@ def test_describe_parse_and_validate_raises_value_error(mock_env_vars, mocker):
     original_symbol = "INVALID"
     error_message = "Invalid ticker for describe test"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', side_effect=ValueError(error_message))
-    
+
     result = app.describe(original_symbol)
     assert error_message in result # The app.describe function prepends/appends newlines.
 
@@ -601,10 +601,10 @@ def test_describe_api_network_error(mock_env_vars, mocker, requests_mock):
     original_symbol = "MSFT"
     processed_symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=processed_symbol)
-    
+
     api_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(api_url, exc=requests.exceptions.ConnectTimeout)
-    
+
     result = app.describe(original_symbol)
     assert f"Could not fetch description for {processed_symbol.upper()} due to a network issue." in result
 
@@ -613,13 +613,13 @@ def test_describe_api_description_missing_key(mock_env_vars, mocker, requests_mo
     original_symbol = "MSFT"
     processed_symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=processed_symbol)
-    
+
     api_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(api_url, json={
         "status": "OK",
         "results": {"ticker": processed_symbol, "name": "Microsoft Corp."} # Missing 'description'
     })
-    
+
     result = app.describe(original_symbol)
     assert f"No description found for {processed_symbol.upper()}." in result
 
@@ -628,22 +628,22 @@ def test_describe_api_results_is_null(mock_env_vars, mocker, requests_mock):
     original_symbol = "MSFT"
     processed_symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=processed_symbol)
-    
+
     api_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(api_url, json={"status": "OK", "results": None})
-    
+
     result = app.describe(original_symbol)
     assert f"No description found for {processed_symbol.upper()}." in result
-    
+
 def test_describe_api_results_key_missing(mock_env_vars, mocker, requests_mock):
     """Tests describe when 'results' key is missing entirely from API response."""
     original_symbol = "MSFT"
     processed_symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=processed_symbol)
-    
+
     api_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(api_url, json={"status": "OK"}) # 'results' key is missing
-    
+
     result = app.describe(original_symbol)
     # This scenario in the current app.py code would lead to a TypeError when response_dict.get('results') (which is None)
     # is then attempted to be subscripted with ['description']. The (KeyError, TypeError) except block handles this.
@@ -655,10 +655,10 @@ def test_describe_api_non_json_response(mock_env_vars, mocker, requests_mock):
     original_symbol = "MSFT"
     processed_symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=processed_symbol)
-    
+
     api_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(api_url, text="This is not JSON", status_code=200)
-    
+
     result = app.describe(original_symbol)
     assert f"Error processing company description data for {processed_symbol.upper()}." in result
 
@@ -667,10 +667,10 @@ def test_describe_api_http_error(mock_env_vars, mocker, requests_mock):
     original_symbol = "MSFT"
     processed_symbol = "MSFT"
     mocker.patch('baba_musk_bot.app.parse_and_validate_ticker_symbol', return_value=processed_symbol)
-    
+
     api_url = f"https://api.polygon.io/v3/reference/tickers/{processed_symbol}?apiKey=test_api_key"
     requests_mock.get(api_url, status_code=503, text="Service Unavailable")
-    
+
     result = app.describe(original_symbol)
     assert f"Could not fetch description for {processed_symbol.upper()} due to a network issue." in result
 
@@ -689,7 +689,7 @@ COIN_PAIRINGS_TO_FETCH = [
 
 def test_coin_successful_retrieval_all_pairings(mock_env_vars, requests_mock):
     """Tests successful price retrieval for all cryptocurrency pairings."""
-    
+
     # Mock successful responses for all pairings
     for pairing, base_name in COIN_PAIRINGS_TO_FETCH:
         currency = pairing.split('-')[1]
@@ -698,14 +698,14 @@ def test_coin_successful_retrieval_all_pairings(mock_env_vars, requests_mock):
         requests_mock.get(api_url, json={
             "data": {"base": pairing.split('-')[0], "currency": currency, "amount": mock_amount}
         })
-        
+
     result = app.coin()
 
     # Check a few representative pairings for correctness
-    assert "1 Bitcoin is $50000.00 in :United_States: (USD)" in result
-    assert "1 Bitcoin is $60000.00 in :Canada: (CAD)" in result
-    assert "1 Ethereum is $50000.00 in :United_States: (USD)" in result # Using example amount
-    assert "1 Solana is $60000.00 in :Canada: (CAD)" in result # Using example amount
+    assert "1 Bitcoin is $50000.00 in 🇺🇸 (USD)" in result
+    assert "1 Bitcoin is $60000.00 in 🇨🇦 (CAD)" in result
+    assert "1 Ethereum is $50000.00 in 🇺🇸 (USD)" in result # Using example amount
+    assert "1 Solana is $60000.00 in 🇨🇦 (CAD)" in result # Using example amount
     # Check that all pairings are mentioned (implicitly checking loop and CRYPTO_NAME_MAP usage)
     assert len(result.strip().split('\n')) == len(COIN_PAIRINGS_TO_FETCH)
 
@@ -724,24 +724,29 @@ def test_coin_api_error_single_pairing(mock_env_vars, requests_mock):
             requests_mock.get(api_url, json={
                 "data": {"base": pairing.split('-')[0], "currency": currency, "amount": mock_amount}
             })
-            
+
     result = app.coin()
 
     assert f"1 {failing_base_name} (USD): Data unavailable (network)" in result
     # Check a successful pairing
-    assert "1 Bitcoin is $50000.00 in :United_States: (USD)" in result
+    assert "1 Bitcoin is $50000.00 in 🇺🇸 (USD)" in result
     assert len(result.strip().split('\n')) == len(COIN_PAIRINGS_TO_FETCH)
 
 def test_coin_api_error_all_pairings(mock_env_vars, requests_mock):
     """Tests behavior when all API calls for pairings fail."""
-    for pairing, _ in COIN_PAIRINGS_TO_FETCH:
+    for pairing, base_name in COIN_PAIRINGS_TO_FETCH:
         api_url = f"https://api.coinbase.com/v2/prices/{pairing}/spot"
         requests_mock.get(api_url, status_code=503, text="Service Unavailable")
-        
+
     result = app.coin()
-    
-    expected_error_message = "Could not retrieve any cryptocurrency prices at this time. Please try again later."
-    assert expected_error_message in result # Using "in" as emojize might add newlines
+
+    # Check that all pairings have error messages
+    for pairing, base_name in COIN_PAIRINGS_TO_FETCH:
+        currency = pairing.split('-')[1]
+        assert f"1 {base_name} ({currency}): Data unavailable (network)" in result
+
+    # Check that the number of lines matches the number of pairings
+    assert len(result.strip().split('\n')) == len(COIN_PAIRINGS_TO_FETCH)
 
 def test_coin_malformed_json_single_pairing(mock_env_vars, requests_mock):
     """Tests behavior with malformed JSON (missing 'amount') for one pairing."""
@@ -759,11 +764,11 @@ def test_coin_malformed_json_single_pairing(mock_env_vars, requests_mock):
             requests_mock.get(api_url, json={
                 "data": {"base": pairing.split('-')[0], "currency": currency, "amount": mock_amount}
             })
-            
+
     result = app.coin()
 
     assert f"1 {malformed_base_name} (USD): Data incomplete" in result
-    assert "1 Bitcoin is $50000.00 in :United_States: (USD)" in result
+    assert "1 Bitcoin is $50000.00 in 🇺🇸 (USD)" in result
     assert len(result.strip().split('\n')) == len(COIN_PAIRINGS_TO_FETCH)
 
 def test_coin_malformed_json_no_data_key(mock_env_vars, requests_mock):
@@ -781,11 +786,11 @@ def test_coin_malformed_json_no_data_key(mock_env_vars, requests_mock):
             requests_mock.get(api_url, json={
                 "data": {"base": pairing.split('-')[0], "currency": currency, "amount": mock_amount}
             })
-            
+
     result = app.coin()
 
     assert f"1 {malformed_base_name} (USD): Data format error" in result
-    assert "1 Bitcoin is $50000.00 in :United_States: (USD)" in result
+    assert "1 Bitcoin is $50000.00 in 🇺🇸 (USD)" in result
     assert len(result.strip().split('\n')) == len(COIN_PAIRINGS_TO_FETCH)
 
 def test_coin_non_float_amount(mock_env_vars, requests_mock):
@@ -805,11 +810,11 @@ def test_coin_non_float_amount(mock_env_vars, requests_mock):
             requests_mock.get(api_url, json={
                 "data": {"base": pairing.split('-')[0], "currency": currency, "amount": mock_amount}
             })
-            
+
     result = app.coin()
 
     assert f"1 {problem_base_name} (USD): Invalid price data" in result
-    assert "1 Bitcoin is $50000.00 in :United_States: (USD)" in result
+    assert "1 Bitcoin is $50000.00 in 🇺🇸 (USD)" in result
     assert len(result.strip().split('\n')) == len(COIN_PAIRINGS_TO_FETCH)
 
 # --- End of tests for coin function ---
@@ -888,7 +893,7 @@ def test_first_trading_date_jan1_is_trading(mocker):
 
     mock_ims = mocker.patch('baba_musk_bot.app.implied_market_status')
     mock_ims.return_value = True # Jan 1st, 2024 is a trading day
-    
+
     expected_date = date(2024, 1, 1)
     # Ensure implied_market_status is called for Jan 1st
     mock_ims.side_effect = lambda d_str: d_str == expected_date.strftime('%Y-%m-%d')
@@ -904,13 +909,13 @@ def test_first_trading_date_jan1_2_holiday_jan3_trading(mocker):
     app.date.today = MagicMock(return_value=date(2024, 1, 15))
 
     mock_ims = mocker.patch('baba_musk_bot.app.implied_market_status')
-    
+
     def ims_side_effect(date_str):
         if date_str == "2024-01-01": return False # Jan 1 (Mon) - Holiday
         if date_str == "2024-01-02": return False # Jan 2 (Tue) - Holiday
         if date_str == "2024-01-03": return True  # Jan 3 (Wed) - Trading
         return False # Should not happen
-        
+
     mock_ims.side_effect = ims_side_effect
     assert app.first_trading_date() == date(2024, 1, 3)
     mock_ims.assert_any_call("2024-01-01")
@@ -928,12 +933,12 @@ def test_first_trading_date_skips_weekend(mocker):
 
 
     mock_ims = mocker.patch('baba_musk_bot.app.implied_market_status')
-    
+
     # Jan 1, 2022 is Saturday. Jan 3, 2022 is Monday.
     def ims_side_effect(date_str):
         if date_str == "2022-01-03": return True # Jan 3 (Mon) is trading
         return False # Weekends or other non-trading days
-        
+
     mock_ims.side_effect = ims_side_effect
     # The loop will check weekday for 2022-01-01 (Sat), skip to 2022-01-03 (Mon)
     # Then it will call implied_market_status("2022-01-03")
@@ -952,7 +957,7 @@ def test_last_trading_date_today_is_trading(mocker):
 
     mock_ims = mocker.patch('baba_musk_bot.app.implied_market_status')
     mock_ims.return_value = True # Today is trading
-    
+
     assert app.last_trading_date() == specific_today
     mock_ims.assert_called_with(specific_today.strftime('%Y-%m-%d'))
 
@@ -967,11 +972,11 @@ def test_last_trading_date_today_is_sunday_friday_trading(mocker):
 
 
     mock_ims = mocker.patch('baba_musk_bot.app.implied_market_status')
-    
+
     def ims_side_effect(date_str):
         if date_str == friday_date.strftime('%Y-%m-%d'): return True
         return False # Weekends (Oct 22 Sun, Oct 21 Sat)
-        
+
     mock_ims.side_effect = ims_side_effect
     assert app.last_trading_date() == friday_date
     # It will check Oct 22 (Sun -> skip to Oct 20), Oct 20
@@ -988,12 +993,12 @@ def test_last_trading_date_today_is_holiday_prev_day_trading(mocker):
 
 
     mock_ims = mocker.patch('baba_musk_bot.app.implied_market_status')
-    
+
     def ims_side_effect(date_str):
         if date_str == specific_today.strftime('%Y-%m-%d'): return False # Today is holiday
         if date_str == prev_trading_day.strftime('%Y-%m-%d'): return True # Prev day is trading
         return False
-        
+
     mock_ims.side_effect = ims_side_effect
     assert app.last_trading_date() == prev_trading_day
     mock_ims.assert_any_call(specific_today.strftime('%Y-%m-%d'))

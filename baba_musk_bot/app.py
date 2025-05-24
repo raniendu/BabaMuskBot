@@ -29,6 +29,18 @@ from datetime import date, timedelta
 import time
 from typing import Optional
 
+def get_today() -> date:
+    """
+    Returns the current date.
+    This function is used to make testing easier by allowing it to be mocked.
+
+    Returns:
+        datetime.date: The current date
+    """
+    today = date.today()
+    print(f"get_today() returning: {today}")  # Debug print
+    return today
+
 # Logging is cool!
 logger = logging.getLogger()
 
@@ -138,6 +150,7 @@ def implied_market_status(status_date_str: str) -> bool:
         bool: True if the market was likely open, False otherwise (e.g., weekend,
             holiday, API error, or API key not set).
     """
+    print(f"Checking market status for date: {status_date_str}")  # Debug print
     if not POLYGON_API_KEY:
         logging.error("POLYGON_API_KEY is not set. Cannot check market status.")
         return False
@@ -185,7 +198,8 @@ def first_trading_date():
                        if a trading date cannot be determined (should ideally not happen
                        in a normal year).
     """
-    current_date = date(date.today().year, 1, 1)
+    today = get_today()
+    current_date = date(today.year, 1, 1)
     # Safety break to prevent infinite loops in unexpected scenarios, e.g., if API always fails.
     for _ in range(366): # Max days in a year + a bit
         weekday = current_date.weekday()
@@ -200,12 +214,12 @@ def first_trading_date():
             current_date += timedelta(days=2)  # Skip to Monday
         else:  # Sunday (weekday == 6)
             current_date += timedelta(days=1)  # Skip to Monday
-        
+
         # Ensure we don't go past a reasonable limit for the current year
-        if current_date.year > date.today().year:
+        if current_date.year > today.year:
             logging.error(f"Failed to find first trading day; iteration moved to next year ({current_date}).")
             return None # Should not happen in a normal year
-    
+
     logging.error("Failed to find the first trading date after extensive iteration.")
     return None # Fallback, should not be reached.
 
@@ -221,7 +235,7 @@ def last_trading_date() -> Optional[date]:
         datetime.date: The most recent trading date. Returns None if a trading
                        date cannot be determined (e.g., persistent API failure).
     """
-    current_date = date.today()
+    current_date = get_today()
     # Safety break: check back up to ~2 weeks. If no trading day found, something is wrong.
     for _ in range(14):  # Check up to 14 days back
         weekday = current_date.weekday()
@@ -240,20 +254,18 @@ def last_trading_date() -> Optional[date]:
     return None  # Fallback if no trading day is found within the loop
 
 
-def ytd(symbol: str) -> str:
+def ytd(original_symbol: str) -> str:
     """Calculates the Year-To-Date (YTD) performance of a given stock symbol.
 
     It fetches the opening price on the first trading day of the current year and
     the closing price on the most recent trading day. Then, it calculates the
     percentage change.
 
-    The `symbol` is assumed to have been validated by
-    `parse_and_validate_ticker_symbol` before this function is called.
+    The symbol is validated using `parse_and_validate_ticker_symbol` within this function.
 
     Args:
-        symbol (str): The stock ticker symbol (e.g., "AAPL"). The parameter name
-                      was `original_symbol` previously, but `symbol` is used here
-                      as it refers to the validated ticker.
+        original_symbol (str): The stock ticker symbol as provided by the user
+                               (e.g., "$AAPL" or "GOOG").
 
     Returns:
         str: A formatted string describing the YTD performance, including an emoji
@@ -265,62 +277,63 @@ def ytd(symbol: str) -> str:
         logging.error("POLYGON_API_KEY is not set. Cannot fetch YTD data.")
         return "\nAPI key for market data is not configured. Please contact bot admin.\n"
 
-    logging.info(f'Calculating YTD for symbol: {symbol}')
-    
-    _first_trading_date_obj = first_trading_date()
-    _last_trading_date_obj = last_trading_date()
-
-    if not _first_trading_date_obj:
-        logging.error(f"Could not determine first trading date for YTD calculation of {symbol}.")
-        return f"\nCould not determine the first trading date of the year for {symbol.upper()}.\n"
-    if not _last_trading_date_obj:
-        logging.error(f"Could not determine last trading date for YTD calculation of {symbol}.")
-        return f"\nCould not determine the most recent trading date for {symbol.upper()}.\n"
-
-    _first_trading_date_str = _first_trading_date_obj.strftime('%Y-%m-%d')
-    _last_trading_date_str = _last_trading_date_obj.strftime('%Y-%m-%d')
-
-    logging.info(f'First trading day for {symbol}: {_first_trading_date_str}')
-    logging.info(f'Last trading day for {symbol}: {_last_trading_date_str}')
-
-    def fetch_with_retry(url: str, symbol_for_log: str, date_for_log: str, key_to_extract: str) -> Optional[float]:
-        """Fetches data from a URL with retries and extracts a specific key.
-
-        Args:
-            url (str): The URL to fetch data from.
-            symbol_for_log (str): The ticker symbol, for logging purposes.
-            date_for_log (str): The date associated with the data, for logging.
-            key_to_extract (str): The key to extract from the JSON response's 'data' field.
-                                  (Correction: based on ytd usage, it's directly from response dict)
-
-        Returns:
-            float | None: The extracted data as a float if successful, otherwise None.
-        """
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = requests.get(url)
-                response.raise_for_status() 
-                data = response.json()
-                if data.get('status') == 'OK' and key_to_extract in data:
-                    return data[key_to_extract]
-                elif key_to_extract in data and data.get('status') != 'NOT_FOUND':
-                     logging.warning(f"Attempt {attempt + 1}/{max_retries}: API status is '{data.get('status')}' but '{key_to_extract}' found for {symbol_for_log} on {date_for_log}. Proceeding with data.")
-                     return data[key_to_extract]
-                else:
-                    logging.warning(f"Attempt {attempt + 1}/{max_retries}: API status '{data.get('status')}' or '{key_to_extract}' missing for {symbol_for_log} on {date_for_log}. Message: {data.get('message')}")
-            except requests.exceptions.RequestException as e:
-                logging.warning(f"Attempt {attempt + 1}/{max_retries}: Request failed for {symbol_for_log} on {date_for_log} ({url}). Error: {e}")
-            except json.JSONDecodeError as e:
-                logging.warning(f"Attempt {attempt + 1}/{max_retries}: Failed to decode JSON for {symbol_for_log} on {date_for_log} ({url}). Error: {e}, Response text: {response.text if 'response' in locals() else 'N/A'}")
-
-            if attempt < max_retries - 1:
-                time.sleep(1) 
-        
-        logging.error(f"All {max_retries} retries failed for {symbol_for_log} on {date_for_log} at URL {url}.")
-        return None
-
     try:
+        symbol = parse_and_validate_ticker_symbol(original_symbol)
+        logging.info(f'Calculating YTD for symbol: {symbol}')
+
+        _first_trading_date_obj = first_trading_date()
+        _last_trading_date_obj = last_trading_date()
+
+        if not _first_trading_date_obj:
+            logging.error(f"Could not determine first trading date for YTD calculation of {symbol}.")
+            return f"\nCould not determine the first trading date of the year for {symbol.upper()}.\n"
+        if not _last_trading_date_obj:
+            logging.error(f"Could not determine last trading date for YTD calculation of {symbol}.")
+            return f"\nCould not determine the most recent trading date for {symbol.upper()}.\n"
+
+        _first_trading_date_str = _first_trading_date_obj.strftime('%Y-%m-%d')
+        _last_trading_date_str = _last_trading_date_obj.strftime('%Y-%m-%d')
+
+        logging.info(f'First trading day for {symbol}: {_first_trading_date_str}')
+        logging.info(f'Last trading day for {symbol}: {_last_trading_date_str}')
+
+        def fetch_with_retry(url: str, symbol_for_log: str, date_for_log: str, key_to_extract: str) -> Optional[float]:
+            """Fetches data from a URL with retries and extracts a specific key.
+
+            Args:
+                url (str): The URL to fetch data from.
+                symbol_for_log (str): The ticker symbol, for logging purposes.
+                date_for_log (str): The date associated with the data, for logging.
+                key_to_extract (str): The key to extract from the JSON response's 'data' field.
+                                      (Correction: based on ytd usage, it's directly from response dict)
+
+            Returns:
+                float | None: The extracted data as a float if successful, otherwise None.
+            """
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = requests.get(url)
+                    response.raise_for_status() 
+                    data = response.json()
+                    if data.get('status') == 'OK' and key_to_extract in data:
+                        return data[key_to_extract]
+                    elif key_to_extract in data and data.get('status') != 'NOT_FOUND':
+                         logging.warning(f"Attempt {attempt + 1}/{max_retries}: API status is '{data.get('status')}' but '{key_to_extract}' found for {symbol_for_log} on {date_for_log}. Proceeding with data.")
+                         return data[key_to_extract]
+                    else:
+                        logging.warning(f"Attempt {attempt + 1}/{max_retries}: API status '{data.get('status')}' or '{key_to_extract}' missing for {symbol_for_log} on {date_for_log}. Message: {data.get('message')}")
+                except requests.exceptions.RequestException as e:
+                    logging.warning(f"Attempt {attempt + 1}/{max_retries}: Request failed for {symbol_for_log} on {date_for_log} ({url}). Error: {e}")
+                except json.JSONDecodeError as e:
+                    logging.warning(f"Attempt {attempt + 1}/{max_retries}: Failed to decode JSON for {symbol_for_log} on {date_for_log} ({url}). Error: {e}, Response text: {response.text if 'response' in locals() else 'N/A'}")
+
+                if attempt < max_retries - 1:
+                    time.sleep(1) 
+
+            logging.error(f"All {max_retries} retries failed for {symbol_for_log} on {date_for_log} at URL {url}.")
+            return None
+
         first_day_open_url = f'https://api.polygon.io/v1/open-close/{symbol}/{_first_trading_date_str}?adjusted=true&apiKey={POLYGON_API_KEY}'
         first_day_open = fetch_with_retry(first_day_open_url, symbol, _first_trading_date_str, 'open')
 
@@ -331,14 +344,14 @@ def ytd(symbol: str) -> str:
             error_message = f"Could not retrieve pricing data for {symbol.upper()} after multiple attempts."
             logging.error(error_message + f" (first_day_open: {first_day_open}, last_day_close: {last_day_close}) for dates {_first_trading_date_str}, {_last_trading_date_str}")
             return f'\n{error_message}\n'
-        
+
         try:
             first_day_open_float = float(first_day_open)
             last_day_close_float = float(last_day_close)
         except (ValueError, TypeError) as e:
             logging.error(f"Could not convert prices to float for {symbol}. Open: '{first_day_open}', Close: '{last_day_close}'. Error: {e}")
             return f"\nError processing price data for {symbol.upper()}.\n"
-        
+
         if first_day_open_float == 0:
             logging.error(f"First day open price for {symbol} on {_first_trading_date_str} is 0. Cannot calculate YTD change.")
             return f"\nCannot calculate YTD for {symbol.upper()} as opening price on {_first_trading_date_str} was zero.\n"
@@ -346,15 +359,11 @@ def ytd(symbol: str) -> str:
         percent_change = ((last_day_close_float / first_day_open_float) - 1) * 100
 
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
-        # The original code used `ticker.upper()` here, but `ticker` is not defined in this scope.
-        # Assuming `symbol.upper()` is intended, as `symbol` is the validated ticker.
         return emoji.emojize(
             '\n<a href="https://robinhood.com/stocks/{0}">{0}</a> is {2} {1} % this year\n'.format(symbol.upper(), format(percent_change, '.2f'), move),
             use_aliases=True)
-    except ValueError as e: # This catch is for parse_and_validate_ticker_symbol if it were called inside.
-                            # Since it's called outside, this specific block might be less relevant here
-                            # unless other ValueErrors are expected from the ytd logic itself.
-        logging.warning(f"ValueError in YTD for {symbol}: {str(e)}")
+    except ValueError as e:
+        logging.warning(f"ValueError in YTD for {original_symbol}: {str(e)}")
         return f'\n{str(e)}\n'
 
 
@@ -446,7 +455,7 @@ def coin() -> str:
                 logging.error(f"Essential price data missing for {pairing} from {api_url}. Currency: '{currency}', Amount: '{amount_str}'. Response: {data}")
                 result_parts.append(f"1 {base_name} ({pairing.split('-')[1]}): Data incomplete")
                 continue
-            
+
             try:
                 amount_float = float(amount_str)
             except ValueError:
@@ -472,7 +481,7 @@ def coin() -> str:
 
     if not result_parts:
         return emoji.emojize("Could not retrieve any cryptocurrency prices at this time. Please try again later.", use_aliases=True)
-        
+
     return emoji.emojize("\n".join(result_parts), use_aliases=True)
 
 
@@ -555,7 +564,7 @@ def webhook(event, context):
         chat_id = update.message.chat.id
         sender_name = update.message.from_user.first_name if update.message.from_user else "User"
         text = update.message.text.strip()
-        
+
         command_parts = text.split(' ')
         command = command_parts[0].lower().replace('@babamuskbot', '') # Normalize command
         args = command_parts[1:]
@@ -614,7 +623,7 @@ def webhook(event, context):
             '/desc': handle_desc_command,
             '/guide': handle_guide,
         }
-        
+
         # --- Command Routing ---
         if command in command_map:
             # Special handling for prompt versions of commands if no args are provided

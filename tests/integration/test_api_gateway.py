@@ -1,5 +1,6 @@
 import os
 from unittest import TestCase
+import unittest
 
 import boto3
 import requests
@@ -47,6 +48,7 @@ class TestApiGateway(TestCase):
 
         self.api_endpoint = api_outputs[0]["OutputValue"]
 
+    @unittest.skipUnless(os.environ.get("AWS_SAM_STACK_NAME"), "AWS_SAM_STACK_NAME environment variable not set")
     def test_api_gateway(self):
         """
         Call the API Gateway endpoint and check the response

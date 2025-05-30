@@ -364,8 +364,7 @@ def ytd(original_symbol: str) -> str:
 
         move = ':arrow_up_small:' if percent_change > 0 else ':arrow_down_small:'
         return emoji.emojize(
-            '\n<a href="https://robinhood.com/stocks/{0}">{0}</a> is {2} {1} % this year\n'.format(symbol.upper(), format(percent_change, '.2f'), move),
-            use_aliases=True)
+            '\n<a href="https://robinhood.com/stocks/{0}">{0}</a> is {2} {1} % this year\n'.format(symbol.upper(), format(percent_change, '.2f'), move))
     except ValueError as e:
         logging.warning(f"ValueError in YTD for {original_symbol}: {str(e)}")
         return f'\n{str(e)}\n'
@@ -484,9 +483,9 @@ def coin() -> str:
             result_parts.append(f"1 {base_name} ({pairing.split('-')[1]}): Error processing")
 
     if not result_parts:
-        return emoji.emojize("Could not retrieve any cryptocurrency prices at this time. Please try again later.", use_aliases=True)
+        return emoji.emojize("Could not retrieve any cryptocurrency prices at this time. Please try again later.")
 
-    return emoji.emojize("\n".join(result_parts), use_aliases=True)
+    return emoji.emojize("\n".join(result_parts))
 
 
 def set_webhook(event: dict, context: object) -> dict:

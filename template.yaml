@@ -17,6 +17,11 @@ Parameters:
     Type: String
 
 Resources:
+  BabaMuskApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      
   BabaMuskFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -33,6 +38,7 @@ Resources:
         BabaMusk:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
+            RestApiId: !Ref BabaMuskApi
             Path: /webhook
             Method: post
 
@@ -57,12 +63,9 @@ Resources:
 #            Schedule: cron(0 * * * ? *)
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  BabaMuskApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/webhook/"
+  BabaMuskApiUrl:
+    Description: "API Gateway endpoint URL for Prod stage for BabaMusk function"
+    Value: !Sub "https://${BabaMuskApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/webhook/"
   BabaMuskFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt BabaMuskFunction.Arn

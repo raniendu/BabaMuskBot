@@ -28,6 +28,10 @@ from telegram import BotCommand
 from datetime import date, timedelta
 import time
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+load_dotenv()
 
 def get_today() -> date:
     """
